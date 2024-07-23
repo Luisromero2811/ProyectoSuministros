@@ -10,6 +10,29 @@
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.15" />
+    <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
+    <PackageReference Include="EPPlus" Version="7.2.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.52.0" />
+    <PackageReference Include="itext" Version="8.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.ServiceModel.Duplex" Version="4.10.3" />
+    <PackageReference Include="System.ServiceModel.Federation" Version="4.10.3" />
+    <PackageReference Include="System.ServiceModel.Http" Version="4.10.3" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="4.10.3" />
+    <PackageReference Include="System.ServiceModel.Security" Version="4.10.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,8 +43,30 @@
 
   <ItemGroup>
     <None Remove="Helpers\" />
+    <None Remove="Controllers\Cliente\" />
+    <None Remove="Controllers\Cluster\" />
+    <None Remove="Controllers\Destinos\" />
+    <None Remove="Controllers\Ejecutivo\" />
+    <None Remove="Controllers\Facturas\" />
+    <None Remove="Controllers\Franquicia\" />
+    <None Remove="Controllers\Grupo\" />
+    <None Remove="Controllers\RazonSocial\" />
+    <None Remove="Controllers\Reparto\" />
+    <None Remove="Controllers\TAD\" />
+    <None Remove="Controllers\Zona\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Helpers\" />
+    <Folder Include="Controllers\Cliente\" />
+    <Folder Include="Controllers\Cluster\" />
+    <Folder Include="Controllers\Destinos\" />
+    <Folder Include="Controllers\Ejecutivo\" />
+    <Folder Include="Controllers\Facturas\" />
+    <Folder Include="Controllers\Franquicia\" />
+    <Folder Include="Controllers\Grupo\" />
+    <Folder Include="Controllers\RazonSocial\" />
+    <Folder Include="Controllers\Reparto\" />
+    <Folder Include="Controllers\TAD\" />
+    <Folder Include="Controllers\Zona\" />
   </ItemGroup>
 </Project>
