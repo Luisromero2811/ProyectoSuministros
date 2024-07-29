@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using OfficeOpenXml.Attributes;
 
 namespace ProyectoSuministros.Shared.Modelos
 {
@@ -14,6 +16,9 @@ namespace ProyectoSuministros.Shared.Modelos
 		public int IDCte { get; set; }
 
 		public int IDDes { get; set; }
+
+		[NotMapped, EpplusIgnore]
+		public Cliente Cliente { get; set; } = null!;
 
 	}
 }

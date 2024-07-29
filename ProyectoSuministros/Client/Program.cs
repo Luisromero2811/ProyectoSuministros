@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components.Web;
+﻿using CurrieTechnologies.Razor.SweetAlert2;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ProyectoSuministros.Client;
 using ProyectoSuministros.Client.Repositorios;
@@ -17,5 +18,6 @@ ConfigureServices(builder.Services);
 await builder.Build().RunAsync();
 void ConfigureServices(IServiceCollection services)
 {
+    services.AddSweetAlert2();
     services.AddScoped<IRepositorio, Repositorio>();
 }

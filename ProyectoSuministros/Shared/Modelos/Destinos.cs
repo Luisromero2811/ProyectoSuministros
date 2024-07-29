@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using OfficeOpenXml.Attributes;
 
 namespace ProyectoSuministros.Shared.Modelos
 {
@@ -32,6 +34,41 @@ namespace ProyectoSuministros.Shared.Modelos
 
 		[MaxLength(4)]
 		public int IDFac { get; set; } = 0;
+
+		public int ID_Rs { get; set; } = 0;
+
+		public int ID_Cluster { get; set; } = 0;
+
+		public int ID_Ejecutivo { get; set; } = 0;
+
+		public int ID_Franquicia { get; set; } = 0;
+
+		public int ID_Reparto { get; set; } = 0;
+
+		public int ID_Tad { get; set; } = 0;
+
+		public int ID_Zona { get; set; } = 0;
+
+		[NotMapped, EpplusIgnore]
+		public RazonSocial RazonSocial { get; set; } = null!;
+
+		[NotMapped, EpplusIgnore]
+		public Cluster Cluster { get; set; } = null!;
+
+		[NotMapped, EpplusIgnore]
+		public Ejecutivo Ejecutivo { get; set; } = null!;
+
+		[NotMapped, EpplusIgnore]
+		public Franquicia Franquicia { get; set; } = null!;
+
+		[NotMapped, EpplusIgnore]
+		public Reparto Reparto { get; set; } = null!;
+
+		[NotMapped, EpplusIgnore]
+		public TAD TAD { get; set; } = null!;
+
+		[NotMapped, EpplusIgnore]
+		public Zona Zona { get; set; } = null!;
 	}
 }
 
