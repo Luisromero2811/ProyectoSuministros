@@ -1,9 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using OfficeOpenXml.Attributes;
 
 namespace ProyectoSuministros.Shared.Modelos
 {
-	public class Facturas
+	public class Factura
 	{
 		[Key]
 		public int ID { get; set; }
@@ -42,6 +44,12 @@ namespace ProyectoSuministros.Shared.Modelos
 		public string Moneda { get; set; }
 
 		public int IDDestino { get; set; }
+
+		[NotMapped, EpplusIgnore]
+		public Destinos Destinos { get; set; } = null!;
+
+		[NotMapped, EpplusIgnore]
+		public Producto Producto { get; set; } = null!;
 	}
 }
 

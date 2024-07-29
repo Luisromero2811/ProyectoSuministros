@@ -45,6 +45,8 @@
     <None Remove="Repositorios\" />
     <None Remove="Helpers\" />
     <None Remove="Pages\Facturas\" />
+    <None Remove="Shared\Layouts\" />
+    <None Remove="Shared\Tabla\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Auth\" />
@@ -53,6 +55,8 @@
     <Folder Include="wwwroot\js\" />
     <Folder Include="wwwroot\img\" />
     <Folder Include="Pages\Facturas\" />
+    <Folder Include="Shared\Layouts\" />
+    <Folder Include="Shared\Tabla\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="wwwroot\js\" />
