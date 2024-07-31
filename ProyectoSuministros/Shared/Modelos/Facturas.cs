@@ -11,37 +11,37 @@ namespace ProyectoSuministros.Shared.Modelos
 		public int ID { get; set; }
 
 		[MaxLength(10)]
-		public string TipDOC { get; set; }
+		public string TipDOC { get; set; } = string.Empty;
 
 		[MaxLength(180)]
-		public string NRem { get; set; }
+		public string NRem { get; set; } = string.Empty;
 
 		[MaxLength(190)]
-		public string NFac { get; set; }
+		public string NFac { get; set; } = string.Empty;
 
 		public int IDProd { get; set; } = 0;
 
 		public DateTime Fch_Ven { get; set; } = DateTime.Now;
 
 		[MaxLength(40)]
-		public string Destino { get; set; }
+		public string Destino { get; set; } = string.Empty;
 
 		[MaxLength(20)]
-		public string Vehiculo { get; set; }
+		public string Vehiculo { get; set; } = string.Empty;
 
-		public float VolNat { get; set; }
+		public double VolNat { get; set; }
 
-		public float Temperatura { get; set; }
+		public double Temperatura { get; set; }
 
-		public float VolFac { get; set; }
+		public double VolFac { get; set; }
 
 		[MaxLength(10)]
-		public string Unidades { get; set; }
+		public string Unidades { get; set; } = string.Empty;
 
-		public float Importe { get; set; }
+		public double Importe { get; set; }
 
 		[MaxLength(20)]
-		public string Moneda { get; set; }
+		public string Moneda { get; set; } = string.Empty;
 
 		public int IDDestino { get; set; }
 

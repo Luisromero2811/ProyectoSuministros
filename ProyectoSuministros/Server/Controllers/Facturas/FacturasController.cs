@@ -39,6 +39,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
 
                 //Posibles listados de las facturas
                 List<Factura> facturas = new();
+                List<Factura> facturas_editadas = new();
 
                 foreach (var file in files)
                 {
@@ -59,7 +60,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                         else if (file.Length > MaxAllowedSize)
                         {
                             uploadResult.ErrorCode = 3;
-                            uploadResult.ErrorMessage = $"(Error: {uploadResult.ErrorCode}), {uploadResult.FileName} : {file.Length / 1000000} Mb es mayor a la capacidad permitida ({Math.Round((double)(MaxAllowedSize / 1000000))}) Mb";
+                            uploadResult.ErrorMessage = $"(Error: {uploadResult.ErrorCode}) {uploadResult.FileName} : {file.Length / 1000000} Mb es mayor a la capacidad permitida ({Math.Round((double)(MaxAllowedSize / 1000000))}) Mb";
                             return BadRequest(uploadResult.ErrorMessage);
                         }
                         else
@@ -82,22 +83,31 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                     if (rows.Count > 0)
                                     {
                                         //Validaciones para mostrar que las columnas no deben de estar vacías.
+
+                                        //Tipo de documento
                                         if (ws.Cells[r, 1].Value is null) { return BadRequest($"El tipo de documento no puede estar vacio. (fila: {r}, columna: 1)"); }
                                         var tipo_documento = ws.Cells[r, 1].Value.ToString();
                                         if (string.IsNullOrEmpty(tipo_documento) || string.IsNullOrWhiteSpace(tipo_documento)) { return BadRequest($"El tipo de documento no puede estar vacio. (fila: {r}, columna: 1)"); }
 
+                                        //Número de remisión
                                         if (ws.Cells[r, 2].Value is null) { return BadRequest($"El número de remisión no puede estar vacio. (fila: {r}, columna: 2)"); }
                                         var numero_remision = ws.Cells[r, 2].Value.ToString();
                                         if (string.IsNullOrEmpty(numero_remision) || string.IsNullOrWhiteSpace(numero_remision)) { return BadRequest($"El número de remisión no puede estar vacio. (fila: {r}, columna: 2)"); }
 
+                                        //Número de factura
                                         if (ws.Cells[r, 3].Value is null) { return BadRequest($"El número de factura no puede estar vacio. (fila: {r}, columna: 3)"); }
                                         var numero_factura = ws.Cells[r, 3].Value.ToString();
                                         if (string.IsNullOrEmpty(numero_factura) || string.IsNullOrWhiteSpace(numero_factura)) { return BadRequest($"El número de factura no puede estar vacio. (fila: {r}, columna: 3)"); }
 
+                                        //Producto
                                         if (ws.Cells[r, 4].Value is null) { return BadRequest($"El producto no puede estar vacio. (fila: {r}, columna: 4)"); }
                                         var producto = ws.Cells[r, 4].Value.ToString();
                                         if (string.IsNullOrEmpty(producto) || string.IsNullOrWhiteSpace(producto)) { return BadRequest($"El producto no puede estar vacio. (fila: {r}, columna: 4)"); }
 
+                                        var prd = context.Producto.FirstOrDefault(x => !string.IsNullOrEmpty(x.Nombre) && x.Nombre.Equals(producto) && x.Activo == true);
+                                        if (prd is null) { return BadRequest($"No sé encontro el producto registrado {prd?.Nombre}. (fila: {r}, columna: 4)"); }
+
+                                        //Fecha de vencimiento
                                         DateTime fecha_vencimiento = DateTime.Today;
                                         if (ws.Cells[r, 5].Value is null) { return BadRequest($"La fecha de vencimiento no puede estar vacia (fila: {r}, columna: 5)"); }
                                         var fecha = ws.Cells[r, 5].Value.ToString();
@@ -108,14 +118,19 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                         else
                                             return BadRequest($"La fecha no tiene un formato valido. (fila: {r}, columna: 5)");
 
+                                        //Destino
                                         if (ws.Cells[r, 6].Value is null) { return BadRequest($"El destino no puede estar vacio. (fila: {r}, columna: 6)"); }
                                         var destino = ws.Cells[r, 6].Value.ToString();
                                         if (string.IsNullOrEmpty(destino) || string.IsNullOrWhiteSpace(destino)) { return BadRequest($"El destino no puede estar vacio. (fila: {r}, columna: 6)"); }
 
+                                        var destinoIdentificador = destino.Split('-')[0];
+
+                                        //Vehiculo
                                         if (ws.Cells[r, 7].Value is null) { return BadRequest($"El vehículo no puede estar vacio. (fila: {r}, columna: 7)"); }
                                         var vehiculo = ws.Cells[r, 7].Value.ToString();
                                         if (string.IsNullOrEmpty(vehiculo) || string.IsNullOrWhiteSpace(vehiculo)) { return BadRequest($"El vehiculo no puede estar vacio. (fila: {r}, columna: 7)"); }
 
+                                        //Volumen natural
                                         double vol_nat = 0;
 
                                         if (ws.Cells[r, 8].Value is null) { return BadRequest($"El volumen natural no puede estar vacio. (fila: {r}, columna: 8)"); }
@@ -127,6 +142,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                         else
                                             return BadRequest($"No se pudo convertir el volumen natural a un dato valido. (fila: {r}, columna: 8)");
 
+                                        //Temperatura
                                         double temp = 0;
 
                                         if (ws.Cells[r, 9].Value is null) { return BadRequest($"La temperatura no puede estar vacia. (fila: {r}, columna: 9)"); }
@@ -138,6 +154,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                         else
                                             return BadRequest($"No se pudo convertir la temperatura a un dato valido. (fila {r}, columna: 9)");
 
+                                        //Volumen facturado
                                         double vol_fac = 0;
 
                                         if (ws.Cells[r, 10].Value is null) { return BadRequest($"El volumen facturado no puede estar vacio. (fila: {r}, columna: 10)"); }
@@ -149,10 +166,12 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                         else
                                             return BadRequest($"No se pudo convertir el volumen facturado a un dato valido. (fila: {r}, columna: 10)");
 
+                                        //Unidades
                                             if (ws.Cells[r, 11].Value is null) { return BadRequest($"Las unidades no pueden estar vacias. (fila: {r}, columna: 11)"); }
                                         var unidades = ws.Cells[r, 11].Value.ToString();
                                         if (string.IsNullOrEmpty(unidades) || string.IsNullOrWhiteSpace(unidades)) { return BadRequest($"Las unidades no pueden estar vacias. (fila: {r}, columna: 11)"); }
 
+                                        //Importe
                                         double impor = 0;
 
                                         if (ws.Cells[r, 12].Value is null) { return BadRequest($"El importe no puede estar vacio. (fila: {r}, columna: 12)"); }
@@ -164,13 +183,45 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                         else
                                             return BadRequest($"No se pudo convertir el importe a un dato factuado. (fila {r}, columna: 12)");
 
+                                        //Moneda
                                         if (ws.Cells[r, 13].Value is null) { return BadRequest($"La moneda no puede estar vacia. (fila: {r}, columna: 13)"); }
                                         var moneda = ws.Cells[r, 13].Value.ToString();
                                         if (string.IsNullOrEmpty(moneda) || string.IsNullOrWhiteSpace(moneda)) { return BadRequest($"La moneda no puede estar vacia. (fila: {r}, columna: 13)"); }
 
+                                        //Instancia a clase factura para dar valor a las propiedades y poder guardarlas
+                                        var factura = new Factura()
+                                        {
+                                            TipDOC = tipo_documento,
+                                            NRem = numero_remision,
+                                            NFac = numero_factura,
+                                            IDProd = prd.ID,
+                                            Fch_Ven = fecha_vencimiento,
+                                            Destino = destino,
+                                            Vehiculo = vehiculo,
+                                            VolNat = vol_nat,
+                                            Temperatura = temp,
+                                            VolFac = vol_fac,
+                                            Unidades = unidades,
+                                            Importe = impor,
+                                            Moneda = moneda,
+                                            IDDestino = Convert.ToInt32(destinoIdentificador),
+                                        };
+
+                                        //Practica para ver si se editan o se guardan por primera vez los datos.
+                                        //var f = context.Facturas.IgnoreAutoIncludes().FirstOrDefault();
+
+                                        //if (f is not null)
+                                        //{
+
+                                        //}
+                                        //else
+                                            facturas.Add(factura);
+
                                     }
 
                                 }
+                                context.AddRange(facturas);
+
                                 await context.SaveChangesAsync();
                             }
                         }
