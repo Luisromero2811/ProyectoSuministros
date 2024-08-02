@@ -1,0 +1,55 @@
+@inject SweetAlertService swal
+@inject NavigationManager navigate
+@inject IJSRuntime js
+@inject IRepositorio repositorio
+
+        <div class="col-12 gsum-bg-rojo text-white row d-flex m-0">
+            <div class="col d-flex">
+                <button class="btn gsum-bg-rojo my-auto text-white" @onclick="OpenMenuLateral" id="buttonSidepanel">
+                    <i class="fa fa-solid fa-bars"></i>
+                </button>
+            </div>
+            <div class="col-8 d-flex">
+               
+            <div class="col-3 d-flex gsum-bg-rojo-dark">
+                <div class="col-6 text-center d-flex justify-content-end" style="text-overflow:ellipsis">
+                    @*@if (MenuGeneral.User.Identity is not null)
+                    {
+                        <p class="my-auto">
+                            @MenuGeneral.User.Claims.Where(x => x.Type == "Terminal").FirstOrDefault()?.Value | @MenuGeneral.User.Identity.Name
+                        </p>
+                    }*@
+                </div>
+                <div class="col-6 text-center my-auto">
+                    @*<button class="btn text-white col-12" @onclick="@CerrarSesion">Cerrar sesion</button>*@
+                </div>
+            </div>
+        </div>
+
+</div>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    
+    private async void OpenMenuLateral()
+    {
+        await js.InvokeVoidAsync("OpenMenu");
+    }
+
+    private async void CerrarSesion()
+    {
+        try
+        {
+            navigate.NavigateTo("/login");
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+}

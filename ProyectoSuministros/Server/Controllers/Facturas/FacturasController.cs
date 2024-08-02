@@ -8,6 +8,7 @@ using OfficeOpenXml;
 using ProyectoSuministros.Shared.DTOs;
 using ProyectoSuministros.Shared.Modelos;
 using Microsoft.EntityFrameworkCore;
+using ProyectoSuministros.Server.Helpers;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -167,7 +168,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                             return BadRequest($"No se pudo convertir el volumen facturado a un dato valido. (fila: {r}, columna: 10)");
 
                                         //Unidades
-                                            if (ws.Cells[r, 11].Value is null) { return BadRequest($"Las unidades no pueden estar vacias. (fila: {r}, columna: 11)"); }
+                                        if (ws.Cells[r, 11].Value is null) { return BadRequest($"Las unidades no pueden estar vacias. (fila: {r}, columna: 11)"); }
                                         var unidades = ws.Cells[r, 11].Value.ToString();
                                         if (string.IsNullOrEmpty(unidades) || string.IsNullOrWhiteSpace(unidades)) { return BadRequest($"Las unidades no pueden estar vacias. (fila: {r}, columna: 11)"); }
 
@@ -195,7 +196,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                             NRem = numero_remision,
                                             NFac = numero_factura,
                                             IDProd = prd.ID,
-                                            Fch_Ven = fecha_vencimiento,
+                                            Fch_Ven = DateTime.Now,
                                             Destino = destino,
                                             Vehiculo = vehiculo,
                                             VolNat = vol_nat,
@@ -215,7 +216,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
 
                                         //}
                                         //else
-                                            facturas.Add(factura);
+                                        facturas.Add(factura);
 
                                     }
 
@@ -238,6 +239,36 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
             }
         }
 
+        [HttpGet("filtro")]
+        public async Task<ActionResult> GetFacturasFiltro([FromQuery] ParametrosBusquedaFacturasDTO parametros)
+        {
+            try
+            {
+                var facturas = context.Facturas.Include(x => x.Producto)
+                    .AsQueryable();
+
+                //Filtros
+
+                await HttpContext.InsertarParametrosPaginacion(facturas, parametros.tamanopagina, parametros.pagina);
+
+                if (HttpContext.Response.Headers.ContainsKey("pagina"))
+                {
+                    var pagina = HttpContext.Response.Headers["pagina"];
+                    if (pagina != parametros.pagina && !string.IsNullOrEmpty(pagina))
+                    {
+                        parametros.pagina = int.Parse(pagina!);
+                    }
+                }
+
+                facturas = facturas.Skip((parametros.pagina - 1) * parametros.tamanopagina).Take(parametros.tamanopagina);
+
+                return Ok(facturas);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
     }
 }

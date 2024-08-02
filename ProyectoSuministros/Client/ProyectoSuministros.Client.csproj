@@ -57,9 +57,15 @@
     <Folder Include="Pages\Facturas\" />
     <Folder Include="Shared\Layouts\" />
     <Folder Include="Shared\Tabla\" />
+    <Folder Include="wwwroot\css\font-awesome\" />
+    <Folder Include="wwwroot\css\font-awesome\css\" />
+    <Folder Include="wwwroot\css\font-awesome\js\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="wwwroot\js\" />
     <Content Remove="wwwroot\img\" />
+    <Content Remove="wwwroot\css\font-awesome\" />
+    <Content Remove="wwwroot\css\font-awesome\css\" />
+    <Content Remove="wwwroot\css\font-awesome\js\" />
   </ItemGroup>
 </Project>
