@@ -1,0 +1,107 @@
+﻿@inject IJSRuntime js
+@inject IRepositorio repositorio
+@inject SweetAlertService swal
+
+<div id="mySidepanel" class="sidepanel">
+    <a href="javascript:void(0)" class="closebtn" @onclick="CloseMenuLateral">×</a>
+    @foreach (var level_0 in Menus)
+    {
+                @if (!level_0.isMenu)
+                {
+                    <NavLink href="@level_0.path" Match="NavLinkMatch.All" ActiveClass="sidepanel-item-active">
+                        <div class="sidepanel-item">
+                            <i class="fa fa-solid fa-@level_0.icon" aria-hidden="true"></i>
+                            @level_0.name
+                        </div>
+                    </NavLink>
+                }
+                else
+                {
+                    <DropDownMenu Show="@level_0.showDropDown">
+                        <Button>
+                            <DropDownMenuButton @bind-ShowDropDown="@level_0.showDropDown">
+                                <ButtonTemplate>
+                                    <i class="fa fa-solid fa-@level_0.icon" aria-hidden="true"></i>
+                                    @level_0.name
+                                </ButtonTemplate>
+                            </DropDownMenuButton>
+                        </Button>
+                        <Items>
+                            @foreach (var level_1 in level_0.Menus)
+                            {
+
+                                @if (!level_1.isMenu)
+                                {
+                                    <DropDownMenuItem Path="@level_1.path" Use_Roles="@true" Roles="@level_1.roles">
+                                        <ItemTemplate>
+                                            <i class="fa fa-solid fa-@level_1.icon" aria-hidden="true"></i>
+                                            @level_1.name
+                                        </ItemTemplate>
+                                    </DropDownMenuItem>
+                                }
+                                else
+                                {
+                                    <DropDownMenu Show="@level_1.showDropDown">
+                                        <Button>
+                                            <DropDownMenuButton @bind-ShowDropDown="level_1.showDropDown">
+                                                <ButtonTemplate>
+                                                    <i class="fa fa-solid fa-@level_1.icon" aria-hidden="true"></i>
+                                                    @level_1.name
+                                                </ButtonTemplate>
+                                            </DropDownMenuButton>
+                                        </Button>
+                                        <Items>
+                                            @foreach (var level_2 in level_1.Menus)
+                                            {
+                                                <DropDownMenuItem Path="@level_2.path" Use_Roles="@true" Roles="@level_2.roles">
+                                                    <ItemTemplate>
+                                                        <i class="fa fa-solid fa-@level_2.icon" aria-hidden="true"></i>
+                                                        @level_2.name
+                                                    </ItemTemplate>
+                                                </DropDownMenuItem>
+
+                                            }
+                                        </Items>
+                                    </DropDownMenu>
+                                }
+
+                            }
+                        </Items>
+                    </DropDownMenu>
+                }
+    }
+</div>
+
+
+@code {
+    List<Menu> Menus { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Facturas
+        Menus.Add(new Menu() { name = "Facturas", icon = "file-invoice-dollar", path = "/facturas",});
+    }
+
+    private async void CloseMenuLateral()
+    {
+        await js.InvokeVoidAsync("CloseMenu");
+    }
+
+    public class Menu
+    {
+        public string name { get; set; } = string.Empty;
+        public string path { get; set; } = string.Empty;
+        public string icon { get; set; } = string.Empty;
+        public string roles { get; set; } = string.Empty;
+        public string context_item { get; set; } = string.Empty;
+        public bool isMenu { get; set; } = false;
+        public bool showDropDown { get; set; } = false;
+        public List<Menu> Menus { get; set; } = new();
+
+        public void ToggleShow()
+        {
+            showDropDown = !showDropDown;
+        }
+    }
+}
+

@@ -23,15 +23,142 @@
                 </div>
             </div>
             <hr />
+            <!--Aquí empieza el formulario de edición de las facturas en caso de ser requerido-->
+            @*<div class="col-12">
+                    <EditForm class="form col-12 row" Context="FORM">
+
+                    </EditForm>
+                </div>*@
+        </div>
+    </div>
+</div>
+<!--Tabla de muestreo de datos de facturas-->
+<div class="col-12 ancho-tabla overflow-scroll">
+    <Tabla Datos="facturas">
+        <Cabeceras>
+            <tr>
+                <th class="resizable-column" style="width:60px !important;">Editar</th>
+                <th class="resizable-column" style="width:80px !important;">Tipo de documento</th>
+                <th class="resizable-column" style="width:120px !important">Número de remisión</th>
+                <th class="resizable-column" style="width:120px !important">Número de factura</th>
+                <th class="resizable-column" style="width:100px !important">Producto</th>
+                <th class="resizable-column" style="width:80px !important">Fecha de vencimiento</th>
+                <th class="resizable-column" style="width:100px !important">Destino</th>
+                <th class="resizable-column" style="width:80px !important">Vehiculo</th>
+                <th class="resizable-column" style="width:60px !important">Volumen al Natural</th>
+                <th class="resizable-column" style="width:60px !important">Temperatura °C</th>
+                <th class="resizable-column" style="width:60px !important">Volumen Facturado</th>
+                <th class="resizable-column" style="width:60px !important">Unidades</th>
+                <th class="resizable-column" style="width:60px !important">Importe</th>
+                <th class="resizable-column" style="width:60px !important">Moneda</th>
+            </tr>
+        </Cabeceras>
+        <Filtros>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </Filtros>
+        <Columnas Context="factura">
+            <tr>
+                <td>
+                    <button class="btn btn-primary col-12" @onclick="@(()=>setEdit(factura))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                </td>
+                <td>@factura.TipDOC</td>
+                <td>@factura.NRem</td>
+                <td>@factura.NFac</td>
+                <td>@factura.Producto.Nombre</td>
+                <td>@factura.Fch_Ven.ToString("dd/MM/yyyy")</td>
+                <td>@factura.Destino</td>
+                <td>@factura.Vehiculo</td>
+                <td>@factura.VolNat</td>
+                <td>@factura.Temperatura</td>
+                <td>@factura.VolFac</td>
+                <td>@factura.Unidades</td>
+                <td>@factura.Importe</td>
+                <td>@factura.Moneda</td>
+                <!--Poner opcion de activo/inactivo-->
+            </tr>
+        </Columnas>
+    </Tabla>
+    <!--Paginación-->
+    <div class="col-12 row mt-1">
+        <div class="text-muted col-2">
+            <p>Total de registros: @ConteoTotal</p>
+        </div>
+        <div class="col-6 offset-4">
+            <PaginacionComponent PaginaActual="PaginaActual" PaginaSeleccionada="PaginasSeleccionadas" PaginasTotales="PaginasTotales"></PaginacionComponent>
         </div>
     </div>
 </div>
 
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
     bool loading_upload = false;
 
     private List<File> files = new();
     private List<UploadResult> UploadResults = new();
+    List<Factura> facturas { get; set; } = new List<Factura>();
+
+    Factura Factura { get; set; } = new Factura();
+
+    ParametrosBusquedaFacturasDTO busquedaFacturas = new ParametrosBusquedaFacturasDTO();
+    int PaginasTotales;
+    int PaginaActual = 1;
+    int ConteoTotal;
+
+    Dictionary<string, string> queryStringObject = new Dictionary<string, string>();
+
+    private async Task LoadData()
+    {
+        if (queryStringObject is null) { queryStringObject = new Dictionary<string, string>(); }
+        queryStringObject["pagina"] = busquedaFacturas.pagina.ToString();
+        queryStringObject["tamanopagina"] = busquedaFacturas.tamanopagina.ToString();
+
+        var DefaultValues = new List<string>() { "false", "", "0" };
+        var uri = string.Join("&", queryStringObject.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+        .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+        await GetFacturasFiltro(uri);
+    }
+
+    private async Task GetFacturasFiltro(string uri)
+    {
+        try
+        {
+            var response = await repositorio.Get<List<Factura>>($"api/facturas/filtro?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                PaginasTotales = int.Parse(response.HttpResponseMessage.Headers.GetValues("paginas").FirstOrDefault());
+                ConteoTotal = int.Parse(response.HttpResponseMessage.Headers.GetValues("conteo").FirstOrDefault());
+                PaginaActual = int.Parse(response.HttpResponseMessage.Headers.GetValues("pagina").FirstOrDefault());
+                facturas = response.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
 
     private class File
     {
@@ -95,6 +222,25 @@
             }
 
         }
+    }
+
+    private async Task setEdit(Factura factura)
+    {
+        try
+        {
+            Factura = factura;
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task PaginasSeleccionadas(int pagina)
+    {
+        PaginaActual = pagina;
+        busquedaFacturas.pagina = PaginaActual;
+        //LoadData();
     }
 
 }
