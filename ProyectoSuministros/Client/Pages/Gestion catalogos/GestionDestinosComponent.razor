@@ -1,0 +1,241 @@
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+
+<div class="card">
+    <div class="card-header">
+        <b>Catalogo de Destinos</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12">
+            <EditForm Model="@Destino" class="col-12 row" OnValidSubmit="@CreateDestinos" Context="Validation">
+                <div class="col-12 row mb-3 justify-content-center">
+                    <div class="col-3">
+                        <label>ID Destino (Suministros):</label>
+                        <InputNumber @bind-Value="Destino.IDGob" class="form-control" MaxLenght="8" />
+                    </div>
+                    <div class="col-3">
+                        <label>Número MGC:</label>
+                        <InputText @bind-Value="Destino.NumMGC" class="form-control" MaxLength="40" />
+                    </div>
+                    <div class="col-3">
+                        <label>Nombre de la estación:</label>
+                        <InputText @bind-Value="Destino.Estacion" class="form-control" MaxLength="128" />
+                    </div>
+                    <div class="col-3">
+                        <label>Nombre México S</label>
+                        <InputText @bind-Value="Destino.NomMS" class="form-control" MaxLength="128" />
+                    </div>
+                </div>
+                <hr />
+                <div class="col-12 row mb-3 justify-content-center">
+                    <div class="col-3">
+                        <label>RFC:</label>
+                        <InputText @bind-Value="Destino.RFC" class="form-control" MaxLength="13" />
+                    </div>
+                    <div class="col-3">
+                        <label>Permiso CRE:</label>
+                        <InputText @bind-Value="Destino.CRE" class="form-control" MaxLength="80" />
+                    </div>
+                    <div class="col-3">
+                        <label>Número estación</label>
+                        <InputText @bind-Value="Destino.NEstacion" class="form-control" MaxLength="20" />
+                    </div>
+                </div>
+                <div class="col-12 row mb-3 justify-content-center">
+                    <div class="col-4 d-flex mt-auto">
+                        @if (!isEdit)
+                        {
+                            <button class="col-12 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-plus"></i> Registrar Destino
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="col mx-2 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-check"></i>
+                            </button>
+                            <button class="col mx-2 btn gsum-bg-amarillo" @onclick="@cancelEdit" type="button">
+                                <i class="fa fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<!--Tabla de muestreo de datos-->
+<div class="card mt-2" style="height: 500px; overflow: scroll;">
+    <div class="card-header">
+        <b>Gestión de Destinos</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Razon Social</label>
+                @*<DropDownFilter>
+
+                    </DropDownFilter>*@
+            </div>
+        </div>
+        <div class="col-12">
+            <table class="table table-sm table-stripped table-bordered">
+                <thead class="fila">
+                    <tr>
+                        <th>ID Destino (Suministro)</th>
+                        <th>Número MGC</th>
+                        <th>Nombre de Estación</th>
+                        <th>Nombre México S</th>
+                        <th>RFC</th>
+                        <th>Permiso CRE</th>
+                        <th>Número estación</th>
+                        <th>Activo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="fila">
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    @if (Destinos.Count > 0)
+                    {
+                            <Virtualize Items="Destinos" TItem="Destinos" Context="item">
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </Virtualize>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .button-circle { /* Green */
+        border: none;
+        color: white;
+        padding: .40rem .60rem;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: .75rem;
+        cursor: pointer;
+        border-radius: 2rem;
+    }
+
+    .fila th {
+        position: -webkit-sticky;
+        position: sticky;
+        text-align: center;
+        top: 0;
+        background-color: #f2f2f2;
+    }
+
+    .fila td {
+        position: -webkit-sticky;
+        position: sticky;
+        text-align: center;
+        top: 28px;
+        background-color: #f2f2f2;
+    }
+
+    .sticky-column {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        background-color: white;
+    }
+
+    .sticky-column-header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        background-color: white;
+    }
+
+    .sticky-column, .sticky-column + th, .sticky-column + td {
+        min-width: 180px;
+    }
+
+    .th-resizable {
+        position: relative;
+        cursor: col-resize;
+    }
+
+        .th-resizable::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 8px;
+            background: transparent;
+        }
+</style>
+
+@code {
+    bool isEdit = false;
+
+    public Destinos Destino { get; set; } = new Destinos();
+    public List<Destinos> Destinos { get; set; } = new List<Destinos>();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    private async Task CreateDestinos()
+    {
+        try
+        {
+            var response = await repositorio.Post<Destinos>($"api/Destinos/crear", Destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino {Destino.NEstacion} creado exitosamente", SweetAlertIcon.Success);
+                StateHasChanged();
+                //await GetDestinos();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task cancelEdit()
+    {
+        try
+        {
+            isEdit = false;
+            Destino = new Destinos();
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+}
+

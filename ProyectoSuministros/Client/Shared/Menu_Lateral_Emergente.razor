@@ -6,69 +6,69 @@
     <a href="javascript:void(0)" class="closebtn" @onclick="CloseMenuLateral">×</a>
     @foreach (var level_0 in Menus)
     {
-                @if (!level_0.isMenu)
-                {
-                    <NavLink href="@level_0.path" Match="NavLinkMatch.All" ActiveClass="sidepanel-item-active">
-                        <div class="sidepanel-item">
+        @if (!level_0.isMenu)
+        {
+            <NavLink href="@level_0.path" Match="NavLinkMatch.All" ActiveClass="sidepanel-item-active">
+                <div class="sidepanel-item">
+                    <i class="fa fa-solid fa-@level_0.icon" aria-hidden="true"></i>
+                    @level_0.name
+                </div>
+            </NavLink>
+        }
+        else
+        {
+            <DropDownMenu Show="@level_0.showDropDown">
+                <Button>
+                    <DropDownMenuButton @bind-ShowDropDown="@level_0.showDropDown">
+                        <ButtonTemplate>
                             <i class="fa fa-solid fa-@level_0.icon" aria-hidden="true"></i>
                             @level_0.name
-                        </div>
-                    </NavLink>
-                }
-                else
-                {
-                    <DropDownMenu Show="@level_0.showDropDown">
-                        <Button>
-                            <DropDownMenuButton @bind-ShowDropDown="@level_0.showDropDown">
-                                <ButtonTemplate>
-                                    <i class="fa fa-solid fa-@level_0.icon" aria-hidden="true"></i>
-                                    @level_0.name
-                                </ButtonTemplate>
-                            </DropDownMenuButton>
-                        </Button>
-                        <Items>
-                            @foreach (var level_1 in level_0.Menus)
-                            {
+                        </ButtonTemplate>
+                    </DropDownMenuButton>
+                </Button>
+                <Items>
+                    @foreach (var level_1 in level_0.Menus)
+                    {
 
-                                @if (!level_1.isMenu)
-                                {
-                                    <DropDownMenuItem Path="@level_1.path" Use_Roles="@true" Roles="@level_1.roles">
-                                        <ItemTemplate>
+                        @if (!level_1.isMenu)
+                        {
+                            <DropDownMenuItem Path="@level_1.path" Use_Roles="@true" Roles="@level_1.roles">
+                                <ItemTemplate>
+                                    <i class="fa fa-solid fa-@level_1.icon" aria-hidden="true"></i>
+                                    @level_1.name
+                                </ItemTemplate>
+                            </DropDownMenuItem>
+                        }
+                        else
+                        {
+                            <DropDownMenu Show="@level_1.showDropDown">
+                                <Button>
+                                    <DropDownMenuButton @bind-ShowDropDown="level_1.showDropDown">
+                                        <ButtonTemplate>
                                             <i class="fa fa-solid fa-@level_1.icon" aria-hidden="true"></i>
                                             @level_1.name
-                                        </ItemTemplate>
-                                    </DropDownMenuItem>
-                                }
-                                else
-                                {
-                                    <DropDownMenu Show="@level_1.showDropDown">
-                                        <Button>
-                                            <DropDownMenuButton @bind-ShowDropDown="level_1.showDropDown">
-                                                <ButtonTemplate>
-                                                    <i class="fa fa-solid fa-@level_1.icon" aria-hidden="true"></i>
-                                                    @level_1.name
-                                                </ButtonTemplate>
-                                            </DropDownMenuButton>
-                                        </Button>
-                                        <Items>
-                                            @foreach (var level_2 in level_1.Menus)
-                                            {
-                                                <DropDownMenuItem Path="@level_2.path" Use_Roles="@true" Roles="@level_2.roles">
-                                                    <ItemTemplate>
-                                                        <i class="fa fa-solid fa-@level_2.icon" aria-hidden="true"></i>
-                                                        @level_2.name
-                                                    </ItemTemplate>
-                                                </DropDownMenuItem>
+                                        </ButtonTemplate>
+                                    </DropDownMenuButton>
+                                </Button>
+                                <Items>
+                                    @foreach (var level_2 in level_1.Menus)
+                                    {
+                                        <DropDownMenuItem Path="@level_2.path" Use_Roles="@true" Roles="@level_2.roles">
+                                            <ItemTemplate>
+                                                <i class="fa fa-solid fa-@level_2.icon" aria-hidden="true"></i>
+                                                @level_2.name
+                                            </ItemTemplate>
+                                        </DropDownMenuItem>
 
-                                            }
-                                        </Items>
-                                    </DropDownMenu>
-                                }
+                                    }
+                                </Items>
+                            </DropDownMenu>
+                        }
 
-                            }
-                        </Items>
-                    </DropDownMenu>
-                }
+                    }
+                </Items>
+            </DropDownMenu>
+        }
     }
 </div>
 
@@ -79,7 +79,69 @@
     protected override async Task OnInitializedAsync()
     {
         //Facturas
-        Menus.Add(new Menu() { name = "Facturas", icon = "file-invoice-dollar", path = "/facturas",});
+        Menus.Add(new Menu() { name = "Facturas", icon = "file-invoice-dollar", path = "/facturas", });
+
+        Menus.Add(new Menu()
+        {
+            isMenu = true,
+            name = "Configuración",
+            icon = "gear",
+            Menus = new()
+{
+                    new()
+                    {
+                        name = "Gestión de Catálogos",
+                        icon = "list-check",
+                        path = "menu/gestion"
+                    }
+                }
+        });
+
+        Menus.Add(new Menu()
+        {
+            isMenu = true,
+            name = "Gráficos",
+            icon = "chart-bar",
+            Menus = new()
+{
+                new()
+                {
+                    name = "Comportamiento diario de compras",
+                    icon = "chart-line",
+                    path = ""
+                },
+                new()
+                {
+                    name = "Historial de compras mensuales Clientes",
+                    icon = "chart-simple",
+                    path = ""
+                },
+                new()
+                {
+                    name = "Compras mensuales clientes y Simsa",
+                    icon = "chart-column",
+                    path = ""
+                },
+                new()
+                {
+                    name = "Volumen por destino en M3 mensual",
+                    icon = "chart-simple",
+                    path = ""
+                },
+                new()
+                {
+                    name = "Compras mensuales",
+                    icon = "chart-column",
+                    path = ""
+                },
+                new()
+                {
+                    name = "Volumen en M3 por Grupo (Mensual)",
+                    icon = "chart-simple",
+                    path = ""
+                },
+            }
+        });
     }
 
     private async void CloseMenuLateral()
