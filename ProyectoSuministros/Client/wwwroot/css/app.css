@@ -157,6 +157,10 @@ a, .btn-link {
 }
 
 /*Estilos para 404*/
+* {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
 #notfound {
     position: relative;
     height: 100vh;

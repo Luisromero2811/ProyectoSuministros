@@ -34,6 +34,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.4" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.2" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.5" />
+    <PackageReference Include="Radzen.Blazor" Version="4.8.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +48,8 @@
     <None Remove="Pages\Facturas\" />
     <None Remove="Shared\Layouts\" />
     <None Remove="Shared\Tabla\" />
+    <None Remove="Pages\Gestion catalogos\" />
+    <None Remove="Pages\Graficos\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Auth\" />
@@ -60,6 +63,8 @@
     <Folder Include="wwwroot\css\font-awesome\" />
     <Folder Include="wwwroot\css\font-awesome\css\" />
     <Folder Include="wwwroot\css\font-awesome\js\" />
+    <Folder Include="Pages\Gestion catalogos\" />
+    <Folder Include="Pages\Graficos\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="wwwroot\js\" />
