@@ -1,6 +1,177 @@
-﻿<h3>Component1</h3>
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject GestionTADValidation gestionTAD
+
+<div class="card">
+    <div class="card-header">
+        <b>Catalogo de TAD</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12">
+            <EditForm Model="Tad" class="form col-12" OnValidSubmit="@SaveTad" Context="validacion">
+                <FluentValidationValidator Validator="gestionTAD" />
+                <ValidationSummary />
+                <div class="col-12 row">
+                    <div class="col-3">
+                        <label>Nombre de la TAD:</label>
+                        <InputText @bind-Value="Tad.Nombre" class="form-control" MaxLenght="40" />
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        @if (!isEdit)
+                        {
+                            <button class="col-12 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-plus"></i> Registrar TAD
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="col mx-2 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-check"></i>
+                            </button>
+                            <button class="col mx-2 btn gsum-bg-amarillo" @onclick="@cancelEdit" type="button">
+                                <i class="fa fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+<!--Tabla de muestreo de datos-->
+<div class="card mt-2" style="height: 500px; overflow: scroll;">
+    <div class="card-header">
+        <b>Gestión de TAD's</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-12">
+                <table class="table table-sm table-stripped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Nombre de la TAD</th>
+                            <th>Estado</th>
+                            <th>Editar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (TADs.Count > 0)
+                        {
+                            <Virtualize Items="TADs" TItem="TAD" Context="item">
+                                <tr>
+                                    <td>@item.Nombre</td>
+                                    <!--Estado-->
+                                    <td>
+                                        <div class="form-check form-switch mx-2">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                                   @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                        </div>
+                                    </td>
+                                    <!--Editar-->
+                                    <td>
+                                        <button class="btn btn-sm gcom-bg-amarillo" @onclick="@(()=>@SetGrupo(item))">
+                                            <i class="fa fa-solid fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </Virtualize>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @code {
+    public TAD Tad { get; set; } = new TAD();
+    public List<TAD> TADs { get; set; } = new List<TAD>();
+
+    bool isEdit = false;
+
+    private async Task SaveTad()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Post<TAD>($"api/tad/save", Tad);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Éxito", $"TAD {Tad.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
+                //await Obtener_Grupos();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task HabilitarDeshabilitar(TAD gt, ChangeEventArgs tp)
+    {
+        try
+        {
+            var status = (bool)tp.Value!;
+            var responseHttp = await repositorio.Put<bool>($"api/tad/desactivarTad/{gt.ID}", status);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (status)
+                {
+                    await Message($"{gt.Nombre} ha sido habilitado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Message($"{gt.Nombre} ha sido deshabilitado", SweetAlertIcon.Info);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Message(string Message, SweetAlertIcon icon)
+    {
+        await Swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
+    }
+
+    private void SetGrupo(TAD Tads)
+    {
+        try
+        {
+            isEdit = true;
+            Tad = Tads;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
+
+    private async void cancelEdit()
+    {
+        isEdit = false;
+        Tad = new TAD();
+    }
 
 }
 

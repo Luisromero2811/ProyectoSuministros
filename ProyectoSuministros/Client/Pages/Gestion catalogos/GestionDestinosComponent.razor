@@ -1,6 +1,7 @@
 ﻿@inject IRepositorio repositorio
 @inject SweetAlertService Swal
 @inject IJSRuntime js
+@inject GestionDestinoValidation gestionDestino
 
 <div class="card">
     <div class="card-header">
@@ -9,6 +10,8 @@
     <div class="card-body">
         <div class="col-12">
             <EditForm Model="@Destino" class="col-12 row" OnValidSubmit="@CreateDestinos" Context="Validation">
+                <FluentValidationValidator Validator="gestionDestino" />
+                <ValidationSummary />
                 <div class="col-12 row mb-3 justify-content-center">
                     <div class="col-3">
                         <label>ID Destino (Suministros):</label>
@@ -92,6 +95,7 @@
                         <th>Permiso CRE</th>
                         <th>Número estación</th>
                         <th>Activo</th>
+                        <th>Editar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -104,21 +108,34 @@
                         <th></th>
                         <th></th>
                         <th></th>
+                        <th></th>
                     </tr>
                     @if (Destinos.Count > 0)
                     {
-                            <Virtualize Items="Destinos" TItem="Destinos" Context="item">
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                            </Virtualize>
+                        <Virtualize Items="Destinos" TItem="Destinos" Context="item">
+                            <tr>
+                                <td>@item.IDGob</td>
+                                <td>@item.NumMGC</td>
+                                <td>@item.Estacion</td>
+                                <td>@item.NomMS</td>
+                                <td>@item.RFC</td>
+                                <td>@item.CRE</td>
+                                <td>@item.NEstacion</td>
+                                <!--Estado del destino-->
+                                <td>
+                                    <div class="form-check form-switch mx-2">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                               @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))" />
+                                    </div>
+                                </td>
+                                <!--Editar destino-->
+                                <td>
+                                    <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetDestino(item))">
+                                        <i class="fa fa-solid fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </Virtualize>
                     }
                 </tbody>
             </table>
@@ -198,14 +215,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-
+        await GetDestinos();
     }
 
     private async Task CreateDestinos()
     {
         try
         {
-            var response = await repositorio.Post<Destinos>($"api/Destinos/crear", Destino);
+            var response = await repositorio.Post<Destinos>($"api/destinos/crear", Destino);
             if (response.Error)
             {
                 var message = await response.ObtenerMensajeError();
@@ -213,9 +230,9 @@
             }
             else
             {
-                await Swal.FireAsync("Exito", $"Destino {Destino.NEstacion} creado exitosamente", SweetAlertIcon.Success);
+                await Swal.FireAsync("Exito", $"Destino {Destino.Estacion} creado exitosamente", SweetAlertIcon.Success);
                 StateHasChanged();
-                //await GetDestinos();
+                await GetDestinos();
             }
         }
         catch (Exception e)
@@ -224,17 +241,85 @@
         }
     }
 
-    private async Task cancelEdit()
+    private async Task GetDestinos()
     {
         try
         {
-            isEdit = false;
-            Destino = new Destinos();
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/lista");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Destinos = responseHttp.Response!;
+            }
         }
         catch (Exception e)
         {
             await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
         }
+    }
+
+    private async Task HabilitarDeshabilitar(Destinos destinos, ChangeEventArgs tp)
+    {
+        try
+        {
+            var status = (bool)tp.Value!;
+            var responseHttp = await repositorio.Put<bool>($"api/destinos/{destinos.ID}", status);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (status)
+                {
+                    await Message($"{destinos.Estacion} ha sido habilitado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Message($"{destinos.Estacion} ha sido deshabilitado", SweetAlertIcon.Info);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Message(string Message, SweetAlertIcon icon)
+    {
+        await Swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
+    }
+
+    private void SetDestino(Destinos destinos)
+    {
+        try
+        {
+            isEdit = true;
+            Destino = destinos;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
+
+    private async Task cancelEdit()
+    {
+        isEdit = false;
+        Destino = new Destinos();
     }
 
 }
