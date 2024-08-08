@@ -35,6 +35,8 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.2" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.5" />
     <PackageReference Include="Radzen.Blazor" Version="4.8.2" />
+    <PackageReference Include="Blazored.FluentValidation" Version="2.1.0" />
+    <PackageReference Include="FluentValidation" Version="11.5.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +52,7 @@
     <None Remove="Shared\Tabla\" />
     <None Remove="Pages\Gestion catalogos\" />
     <None Remove="Pages\Graficos\" />
+    <None Remove="Helpers\Validations\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Auth\" />
@@ -65,6 +68,7 @@
     <Folder Include="wwwroot\css\font-awesome\js\" />
     <Folder Include="Pages\Gestion catalogos\" />
     <Folder Include="Pages\Graficos\" />
+    <Folder Include="Helpers\Validations\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="wwwroot\js\" />

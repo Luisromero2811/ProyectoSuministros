@@ -13,6 +13,7 @@ namespace ProyectoSuministros.Shared.Modelos
 
 		public int IDDes { get; set; } = 0;
 
+		public bool Activo { get; set; } = true;
 	}
 }
 

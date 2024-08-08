@@ -106,6 +106,35 @@
 {
                 new()
                 {
+                    isMenu = true,
+                    name = "Gráficas de Ventas",
+                    icon = "money-bill-trend-up",
+                    Menus = new()
+    {
+                          new()
+                {
+                    name = "Volumen por destino en M3 mensual",
+                    icon = "chart-simple",
+                    path = ""
+                },
+
+                new()
+                {
+                    name = "Volumen en M3 por Grupo (Mensual)",
+                    icon = "chart-simple",
+                    path = ""
+                },
+                    }
+                },
+                new()
+                {
+                    isMenu = true,
+                    name = "Gráficas de Compras",
+                    icon = "cash-register",
+                    Menus = new()
+    {
+                        new()
+                {
                     name = "Comportamiento diario de compras",
                     icon = "chart-line",
                     path = ""
@@ -118,27 +147,17 @@
                 },
                 new()
                 {
-                    name = "Compras mensuales clientes y Simsa",
+                    name = "Compras mensuales clientes y SIMSA",
                     icon = "chart-column",
                     path = ""
                 },
-                new()
-                {
-                    name = "Volumen por destino en M3 mensual",
-                    icon = "chart-simple",
-                    path = ""
-                },
-                new()
+                 new()
                 {
                     name = "Compras mensuales",
                     icon = "chart-column",
                     path = ""
                 },
-                new()
-                {
-                    name = "Volumen en M3 por Grupo (Mensual)",
-                    icon = "chart-simple",
-                    path = ""
+                    }
                 },
             }
         });

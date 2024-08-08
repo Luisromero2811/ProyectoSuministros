@@ -1,6 +1,175 @@
-﻿<h3>Component1</h3>
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject GestionClusterValidation gestionCluster
 
+<div class="card">
+    <div class="card-header">
+        <b>Catalogo de Cluster</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12">
+            <EditForm Model="Cluster" class="form col-12" OnValidSubmit="@SaveGrupo" Context="validacion">
+                <FluentValidationValidator Validator="gestionCluster" />
+                <ValidationSummary />
+                <div class="col-12 row">
+                    <div class="col-3">
+                        <label>Nombre del cluster:</label>
+                        <InputText @bind-Value="Cluster.Nombre" class="form-control" MaxLenght="40" />
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        @if (!isEdit)
+                        {
+                            <button class="col-12 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-plus"></i> Registrar Cluster
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="col mx-2 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-check"></i>
+                            </button>
+                            <button class="col mx-2 btn gsum-bg-amarillo" @onclick="@cancelEdit" type="button">
+                                <i class="fa fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+<!--Tabla de muestreo de datos-->
+<div class="card mt-2" style="height: 500px; overflow: scroll;">
+    <div class="card-header">
+        <b>Gestión de Cluster</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-12">
+                <table class="table table-sm table-stripped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Cluster</th>
+                            <th>Estado</th>
+                            <th>Editar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Clusters.Count > 0)
+                        {
+                            <Virtualize Items="Clusters" TItem="Cluster" Context="item">
+                                <tr>
+                                    <td>@item.Nombre</td>
+                                    <!--Estado-->
+                                    <td>
+                                        <div class="form-check form-switch mx-2">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                                   @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                        </div>
+                                    </td>
+                                    <!--Editar-->
+                                    <td>
+                                        <button class="btn btn-sm gcom-bg-amarillo" @onclick="@(()=>@SetCluster(item))">
+                                            <i class="fa fa-solid fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </Virtualize>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 @code {
+    public Cluster Cluster { get; set; } = new Cluster();
+    public List<Cluster> Clusters { get; set; } = new List<Cluster>();
+
+    bool isEdit = false;
+
+    private async Task SaveGrupo()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Post<Cluster>($"api/cluster/save", Cluster);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Éxito", $"Cluster {Cluster.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
+                //await Obtener_Grupos();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async void cancelEdit()
+    {
+        isEdit = false;
+        Cluster = new Cluster();
+    }
+
+    private async Task HabilitarDeshabilitar(Cluster gt, ChangeEventArgs tp)
+    {
+        try
+        {
+            var status = (bool)tp.Value!;
+            var responseHttp = await repositorio.Put<bool>($"api/cluster/desactivarcluster/{gt.ID}", status);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (status)
+                {
+                    await Message($"{gt.Nombre} ha sido habilitado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Message($"{gt.Nombre} ha sido deshabilitado", SweetAlertIcon.Info);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Message(string Message, SweetAlertIcon icon)
+    {
+        await Swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
+    }
+
+    private void SetCluster(Cluster Clusters)
+    {
+        try
+        {
+            isEdit = true;
+            Cluster = Clusters;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
 
 }
 

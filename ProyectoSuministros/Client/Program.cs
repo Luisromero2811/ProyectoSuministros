@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ProyectoSuministros.Client;
 using ProyectoSuministros.Client.Repositorios;
 using Radzen;
+using ProyectoSuministros.Client.Helpers.Validations;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -21,4 +22,15 @@ void ConfigureServices(IServiceCollection services)
 {
     services.AddSweetAlert2();
     services.AddScoped<IRepositorio, Repositorio>();
+
+    services.AddScoped<GestionDestinoValidation>();
+    services.AddScoped<GestionClienteValidation>();
+    services.AddScoped<GestionClusterValidation>();
+    services.AddScoped<GestionEjecutivosValidation>();
+    services.AddScoped<GestionFranquiciasValidation>();
+    services.AddScoped<GestionGrupoValidation>();
+    services.AddScoped<GestionRazonSocialValidation>();
+    services.AddScoped<GestionRepartoValidation>();
+    services.AddScoped<GestionTADValidation>();
+    services.AddScoped<GestionZonaValidation>();
 }

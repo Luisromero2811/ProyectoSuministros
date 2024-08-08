@@ -18,6 +18,8 @@ namespace ProyectoSuministros.Shared.Modelos
 
 		[NotMapped, EpplusIgnore]
 		public Grupo Grupo { get; set; } = null!;
+
+		public bool Activo { get; set; } = true;
 	}
 }
 

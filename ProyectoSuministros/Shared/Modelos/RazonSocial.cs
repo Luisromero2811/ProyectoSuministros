@@ -17,6 +17,8 @@ namespace ProyectoSuministros.Shared.Modelos
 
 		public int IDDes { get; set; }
 
+		public bool Activo { get; set; } = true;
+
 		[NotMapped, EpplusIgnore]
 		public Cliente Cliente { get; set; } = null!;
 

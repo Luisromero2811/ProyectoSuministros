@@ -13,6 +13,8 @@ namespace ProyectoSuministros.Shared.Modelos
 		[MaxLength(40)]
 		public string? Nombre { get; set; }
 
+		public bool? Activo { get; set; } = true;
+
 	}
 }
 

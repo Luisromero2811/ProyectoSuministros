@@ -8,12 +8,14 @@ namespace ProyectoSuministros.Shared.Modelos
 		[Key]
 		public int ID { get; set; }
 
-		public int IDGob { get; set; }
+		public int? IDGob { get; set; }
 
 		[MaxLength(40)]
-		public string Nombre { get; set; }
+		public string? Nombre { get; set; }
 
 		public int IDDes { get; set; }
+
+		public bool Activo { get; set; } = true;
 
 	}
 }

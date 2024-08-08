@@ -1,6 +1,202 @@
-﻿<h3>Component1</h3>
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject GestionGrupoValidation gestionGrupo
+
+<div class="card">
+    <div class="card-header">
+        <b>Catalogo de Grupos empresariales</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12">
+            <EditForm Model="Grupo" class="form col-12" OnValidSubmit="@SaveGrupo" Context="validacion">
+                <FluentValidationValidator Validator="gestionGrupo" />
+                <ValidationSummary />
+                <div class="col-12 row">
+                    <div class="col-3">
+                        <label>Nombre del grupo empresarial:</label>
+                        <InputText @bind-Value="Grupo.Nombre" class="form-control" MaxLenght="40" />
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        @if (!isEdit)
+                        {
+                            <button class="col-12 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-plus"></i> Registrar Grupo empresarial
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="col mx-2 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-check"></i>
+                            </button>
+                            <button class="col mx-2 btn gsum-bg-amarillo" @onclick="@cancelEdit" type="button">
+                                <i class="fa fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+<!--Tabla de muestreo de datos-->
+<div class="card mt-2" style="height: 500px; overflow: scroll;">
+    <div class="card-header">
+        <b>Gestión de Grupos empresariales</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-12">
+                <table class="table table-sm table-stripped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Grupo Empresarial</th>
+                            <th>Estado</th>
+                            <th>Editar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Grupos.Count > 0)
+                        {
+                            <Virtualize Items="Grupos" TItem="Grupo" Context="item">
+                                <tr>
+                                    <td>@item.Nombre</td>
+                                    <!--Estado-->
+                                    <td>
+                                        <div class="form-check form-switch mx-2">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                                   @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                        </div>
+                                    </td>
+                                    <!--Editar-->
+                                    <td>
+                                        <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetGrupo(item))">
+                                            <i class="fa fa-solid fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </Virtualize>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
+    public Grupo Grupo { get; set; } = new Grupo();
+    public List<Grupo> Grupos { get; set; } = new List<Grupo>();
+
+    bool isEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Obtener_Grupos();
+    }
+
+    private async Task SaveGrupo()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Post<Grupo>($"api/grupo/save", Grupo);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Éxito", $"Grupo {Grupo.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
+                await Obtener_Grupos();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Grupos()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Grupo>>($"api/grupo/list");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task HabilitarDeshabilitar(Grupo gt, ChangeEventArgs tp)
+    {
+        try
+        {
+            var status = (bool)tp.Value!;
+            var responseHttp = await repositorio.Put<bool>($"api/grupo/{gt.ID}", status);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (status)
+                {
+                    await Message($"{gt.Nombre} ha sido habilitado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Message($"{gt.Nombre} ha sido deshabilitado", SweetAlertIcon.Info);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Message(string Message, SweetAlertIcon icon)
+    {
+        await Swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
+    }
+
+    private void SetGrupo(Grupo grupos)
+    {
+        try
+        {
+            isEdit = true;
+            Grupo = grupos;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
+
+    private async void cancelEdit()
+    {
+        isEdit = false;
+        Grupo = new Grupo();
+    }
 
 }
 
