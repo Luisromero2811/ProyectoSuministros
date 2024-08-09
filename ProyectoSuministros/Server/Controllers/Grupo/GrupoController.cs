@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using ProyectoSuministros.Shared.DTOs;
 using ProyectoSuministros.Shared.Modelos;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -53,11 +54,15 @@ namespace ProyectoSuministros.Server.Controllers
         }
 
         [HttpGet("list")]
-        public async Task<ActionResult> GetList()
+        public async Task<ActionResult> GetList([FromQuery] ParametrosBusquedaCatalogo grupo)
         {
             try
             {
-                var grupos = context.Grupo.Where(x => x.Activo == true).ToList();
+                var grupos = context.Grupo.Where(x => x.Activo == true).AsQueryable();
+
+                if (!string.IsNullOrEmpty(grupo.nombreGrupo))
+                    grupos = grupos.Where(x => x.Nombre != null && !string.IsNullOrEmpty(x.Nombre) && x.Nombre.ToLower().Contains(grupo.nombreGrupo.ToLower()));
+
                 return Ok(grupos);
             }
             catch (Exception e)

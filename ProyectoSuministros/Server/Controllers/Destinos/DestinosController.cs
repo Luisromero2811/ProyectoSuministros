@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ProyectoSuministros.Shared.Modelos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using ProyectoSuministros.Shared.DTOs;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -54,12 +55,17 @@ namespace ProyectoSuministros.Server.Controllers
         }
 
         [HttpGet("lista")]
-        public async Task<ActionResult> GetList()
+        public async Task<ActionResult> GetList([FromQuery] ParametrosBusquedaCatalogo destino)
         {
             try
             {
-                var destinos = context.Destinos.Where(x => x.Activo == true).ToList();
+                var destinos = context.Destinos.Where(x => x.Activo == true).AsQueryable();
+
+                if (!string.IsNullOrEmpty(destino.nombreDestino))
+                    destinos = destinos.Where(x => x.Estacion != null && !string.IsNullOrEmpty(x.Estacion) && x.Estacion.ToLower().Contains(destino.nombreDestino.ToLower()));
+
                 return Ok(destinos);
+
             }
             catch (Exception e)
             {

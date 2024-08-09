@@ -10,17 +10,17 @@ namespace ProyectoSuministros.Shared.Modelos
 		[Key]
 		public int ID { get; set; }
 
-		[MaxLength(40)]
-		public string Nombre { get; set; }
+		[MaxLength(128)]
+		public string Nombre { get; set; } = string.Empty;
 
-		public int IDCte { get; set; }
+		public int? IDCte { get; set; }
 
-		public int IDDes { get; set; }
+		public int? IDDes { get; set; }
 
-		public bool Activo { get; set; } = true;
+		public bool? Activo { get; set; } = true;
 
 		[NotMapped, EpplusIgnore]
-		public Cliente Cliente { get; set; } = null!;
+		public Cliente? Cliente { get; set; } = null!;
 
 	}
 }

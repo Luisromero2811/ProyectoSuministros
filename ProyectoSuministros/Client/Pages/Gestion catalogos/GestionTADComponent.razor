@@ -17,6 +17,10 @@
                         <label>Nombre de la TAD:</label>
                         <InputText @bind-Value="Tad.Nombre" class="form-control" MaxLenght="40" />
                     </div>
+                    <div class="col-3">
+                        <label>ID de la TAD:</label>
+                        <InputNumber @bind-Value="Tad.IDGob" class="form-control"/>
+                    </div>
                     <div class="col-3 d-flex mt-auto">
                         @if (!isEdit)
                         {
@@ -47,38 +51,44 @@
     <div class="card-body">
         <div class="col-12 row">
             <div class="col-12">
-                <table class="table table-sm table-stripped table-bordered">
-                    <thead>
+                <Tabla Datos="TADs">
+                    <Cabeceras>
                         <tr>
                             <th>Nombre de la TAD</th>
+                            <th>ID de la TAD</th>
                             <th>Estado</th>
                             <th>Editar</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if (TADs.Count > 0)
-                        {
-                            <Virtualize Items="TADs" TItem="TAD" Context="item">
-                                <tr>
-                                    <td>@item.Nombre</td>
-                                    <!--Estado-->
-                                    <td>
-                                        <div class="form-check form-switch mx-2">
-                                            <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
-                                                   @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
-                                        </div>
-                                    </td>
-                                    <!--Editar-->
-                                    <td>
-                                        <button class="btn btn-sm gcom-bg-amarillo" @onclick="@(()=>@SetGrupo(item))">
-                                            <i class="fa fa-solid fa-edit"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </Virtualize>
-                        }
-                    </tbody>
-                </table>
+                    </Cabeceras>
+                    <Filtros>
+                        <tr class="fila">
+                            <td>
+                                <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombreTad" />
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </Filtros>
+                    <Columnas Context="item">
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <td>@item.IDGob</td>
+                            <!--Estado-->
+                            <td>
+                                <div class="form-check form-switch mx-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                           @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                </div>
+                            </td>
+                            <!--Editar-->
+                            <td>
+                                <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetGrupo(item))">
+                                    <i class="fa fa-solid fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </Columnas>
+                </Tabla>
             </div>
         </div>
     </div>
@@ -91,11 +101,19 @@
 
     bool isEdit = false;
 
+    Dictionary<string, string> query = new Dictionary<string, string>();
+    ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetTAD();
+    }
+
     private async Task SaveTad()
     {
         try
         {
-            var responseHttp = await repositorio.Post<TAD>($"api/tad/save", Tad);
+            var responseHttp = await repositorio.Post<TAD>($"api/Tad/save", Tad);
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();
@@ -104,7 +122,37 @@
             else
             {
                 await Swal.FireAsync("Éxito", $"TAD {Tad.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
-                //await Obtener_Grupos();
+                await GetTAD();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadData(ChangeEventArgs args)
+    {
+        busquedaCatalogo.nombreTad = args.Value?.ToString() ?? string.Empty;
+        await GetTAD();
+    }
+
+    private async Task GetTAD()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["nombreTad"] = busquedaCatalogo.nombreTad;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<TAD>>($"api/Tad/list?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                TADs = responseHttp.Response!;
             }
         }
         catch (Exception e)
@@ -118,7 +166,7 @@
         try
         {
             var status = (bool)tp.Value!;
-            var responseHttp = await repositorio.Put<bool>($"api/tad/desactivarTad/{gt.ID}", status);
+            var responseHttp = await repositorio.Put<bool>($"api/Tad/{gt.ID}", status);
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();

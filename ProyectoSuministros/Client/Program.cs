@@ -5,6 +5,7 @@ using ProyectoSuministros.Client;
 using ProyectoSuministros.Client.Repositorios;
 using Radzen;
 using ProyectoSuministros.Client.Helpers.Validations;
+using ProyectoSuministros.Client.Helpers;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -33,4 +34,6 @@ void ConfigureServices(IServiceCollection services)
     services.AddScoped<GestionRepartoValidation>();
     services.AddScoped<GestionTADValidation>();
     services.AddScoped<GestionZonaValidation>();
+
+    services.AddScoped<Constructor_De_URL_Parametros>();
 }

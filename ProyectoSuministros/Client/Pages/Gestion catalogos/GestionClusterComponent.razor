@@ -47,38 +47,42 @@
     <div class="card-body">
         <div class="col-12 row">
             <div class="col-12">
-                <table class="table table-sm table-stripped table-bordered">
-                    <thead>
+                <Tabla Datos="Clusters">
+                    <Cabeceras>
                         <tr>
                             <th>Nombre del Cluster</th>
                             <th>Estado</th>
                             <th>Editar</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if (Clusters.Count > 0)
-                        {
-                            <Virtualize Items="Clusters" TItem="Cluster" Context="item">
-                                <tr>
-                                    <td>@item.Nombre</td>
-                                    <!--Estado-->
-                                    <td>
-                                        <div class="form-check form-switch mx-2">
-                                            <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
-                                                   @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
-                                        </div>
-                                    </td>
-                                    <!--Editar-->
-                                    <td>
-                                        <button class="btn btn-sm gcom-bg-amarillo" @onclick="@(()=>@SetCluster(item))">
-                                            <i class="fa fa-solid fa-edit"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </Virtualize>
-                        }
-                    </tbody>
-                </table>
+                    </Cabeceras>
+                    <Filtros>
+                        <tr class="fila">
+                            <td>
+                                <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombreCluster" />
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </Filtros>
+                    <Columnas Context="item">
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <!--Estado-->
+                            <td>
+                                <div class="form-check form-switch mx-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                           @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                </div>
+                            </td>
+                            <!--Editar-->
+                            <td>
+                                <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetCluster(item))">
+                                    <i class="fa fa-solid fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </Columnas>
+                </Tabla>
             </div>
         </div>
     </div>
@@ -87,7 +91,15 @@
     public Cluster Cluster { get; set; } = new Cluster();
     public List<Cluster> Clusters { get; set; } = new List<Cluster>();
 
+    Dictionary<string, string> query = new Dictionary<string, string>();
+    ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+
     bool isEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetClusters();
+    }
 
     private async Task SaveGrupo()
     {
@@ -102,7 +114,37 @@
             else
             {
                 await Swal.FireAsync("Éxito", $"Cluster {Cluster.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
-                //await Obtener_Grupos();
+                await GetClusters();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadData(ChangeEventArgs args)
+    {
+        busquedaCatalogo.nombreCluster = args.Value?.ToString() ?? string.Empty;
+        await GetClusters();
+    }
+
+    private async Task GetClusters()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["nombreCluster"] = busquedaCatalogo.nombreCluster;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Cluster>>($"api/cluster/list?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Clusters = responseHttp.Response!;
             }
         }
         catch (Exception e)
@@ -122,7 +164,7 @@
         try
         {
             var status = (bool)tp.Value!;
-            var responseHttp = await repositorio.Put<bool>($"api/cluster/desactivarcluster/{gt.ID}", status);
+            var responseHttp = await repositorio.Put<bool>($"api/cluster/{gt.ID}", status);
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();

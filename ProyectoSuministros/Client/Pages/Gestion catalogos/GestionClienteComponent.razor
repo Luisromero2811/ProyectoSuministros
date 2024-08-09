@@ -47,41 +47,55 @@
     </div>
     <div class="card-body">
         <div class="col-12 row">
+            @*<div class="col-3 mb-2">
+                <label>Grupo</label>
+                <DropDownFilter Listado="GrupoActivo" TListado="Grupo" TValue="Int16?" Default_Placeholder="Seleccione un Grupo" FiltrarValor="Obtener_Grupos"
+                                Propiedad_Valor="Cod" On_Change_Method="@GetCliente" @bind-Valor="Cod_Gru">
+                    <RenderValue>
+                        @context.Den
+                    </RenderValue>
+                    <Render>
+                        @context.Den
+                    </Render>
+                </DropDownFilter>
+            </div>*@
+        </div>
             <div class="col-12">
-                <table class="table table-sm table-stripped table-bordered">
-                    <thead>
+                <Tabla Datos="Clientes">
+                    <Cabeceras>
                         <tr>
                             <th>Nombre del Cliente</th>
                             <th>Estado</th>
                             <th>Editar</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if (Clientes.Count > 0)
-                        {
-                            <Virtualize Items="Clientes" TItem="Cliente" Context="item">
-                                <tr>
-                                    <td>@item.Nombre</td>
-                                    <!--Estado-->
-                                    <td>
-                                        <div class="form-check form-switch mx-2">
-                                            <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
-                                                   @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
-                                        </div>
-                                    </td>
-                                    <!--Editar-->
-                                    <td>
-                                        <button class="btn btn-sm gcom-bg-amarillo" @onclick="@(()=>@SetGrupo(item))">
-                                            <i class="fa fa-solid fa-edit"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </Virtualize>
-                        }
-                    </tbody>
-                </table>
+                    </Cabeceras>
+                    <Filtros>
+                        <tr class="fila">
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </Filtros>
+                    <Columnas Context="item">
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <!--Estado-->
+                            <td>
+                                <div class="form-check form-switch mx-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                           @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                </div>
+                            </td>
+                            <!--Editar-->
+                            <td>
+                                <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetGrupo(item))">
+                                    <i class="fa fa-solid fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </Columnas>
+                </Tabla>
             </div>
-        </div>
     </div>
 </div>
 
@@ -92,11 +106,16 @@
 
     bool isEdit = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await GetClientes();
+    }
+
     private async Task SaveCliente()
     {
         try
         {
-            var responseHttp = await repositorio.Post<Cliente>($"api/grupo/save", Cliente);
+            var responseHttp = await repositorio.Post<Cliente>($"api/cliente/save", Cliente);
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();
@@ -104,8 +123,29 @@
             }
             else
             {
-                await Swal.FireAsync("Éxito", $"Grupo {Cliente.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
-                //await Obtener_Grupos();
+                await Swal.FireAsync("Éxito", $"Cliente {Cliente.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
+                await GetClientes();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetClientes()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Cliente>>($"api/Cliente/list");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Clientes = responseHttp.Response!;
             }
         }
         catch (Exception e)
@@ -119,7 +159,7 @@
         try
         {
             var status = (bool)tp.Value!;
-            var responseHttp = await repositorio.Put<bool>($"api/cliente/desactivarcliente/{gt.ID}", status);
+            var responseHttp = await repositorio.Put<bool>($"api/cliente/{gt.ID}", status);
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();

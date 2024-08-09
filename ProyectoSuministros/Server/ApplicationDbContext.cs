@@ -90,7 +90,7 @@ namespace ProyectoSuministros.Server
         public DbSet<Franquicia> Franquicia { get; set; }
         public DbSet<Grupo> Grupo { get; set; }
         public DbSet<Producto> Producto { get; set; }
-        public DbSet<RazonSocial> RazonSocials { get; set; }
+        public DbSet<RazonSocial> Razonsocial { get; set; }
         public DbSet<Reparto> Reparto { get; set; }
         public DbSet<TAD> TAD { get; set; }
         public DbSet<Zona> Zona { get; set; }
