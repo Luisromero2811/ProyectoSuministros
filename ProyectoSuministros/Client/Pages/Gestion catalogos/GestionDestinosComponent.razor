@@ -78,14 +78,22 @@
         <div class="col-12 row">
             <div class="col-3 mb-2">
                 <label>Razon Social</label>
-                @*<DropDownFilter>
-
-                    </DropDownFilter>*@
+                @*
+                    <DropDownFilter Listado="GrupoActivo" TListado="Grupo" TValue="Int16?" Default_Placeholder="Seleccione un Grupo" FiltrarValor="Obtener_Grupos"
+                                    Propiedad_Valor="Cod" On_Change_Method="@GetCliente" @bind-Valor="Cod_Gru">
+                        <RenderValue>
+                            @context.Den
+                        </RenderValue>
+                        <Render>
+                            @context.Den
+                        </Render>
+                    </DropDownFilter>
+                *@
             </div>
         </div>
         <div class="col-12">
-            <table class="table table-sm table-stripped table-bordered">
-                <thead class="fila">
+            <Tabla Datos="Destinos">
+                <Cabeceras>
                     <tr>
                         <th>ID Destino (Suministro)</th>
                         <th>Número MGC</th>
@@ -97,48 +105,47 @@
                         <th>Activo</th>
                         <th>Editar</th>
                     </tr>
-                </thead>
-                <tbody>
+                </Cabeceras>
+                <Filtros>
                     <tr class="fila">
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombreDestino" />
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </tr>
-                    @if (Destinos.Count > 0)
-                    {
-                        <Virtualize Items="Destinos" TItem="Destinos" Context="item">
-                            <tr>
-                                <td>@item.IDGob</td>
-                                <td>@item.NumMGC</td>
-                                <td>@item.Estacion</td>
-                                <td>@item.NomMS</td>
-                                <td>@item.RFC</td>
-                                <td>@item.CRE</td>
-                                <td>@item.NEstacion</td>
-                                <!--Estado del destino-->
-                                <td>
-                                    <div class="form-check form-switch mx-2">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
-                                               @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))" />
-                                    </div>
-                                </td>
-                                <!--Editar destino-->
-                                <td>
-                                    <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetDestino(item))">
-                                        <i class="fa fa-solid fa-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </Virtualize>
-                    }
-                </tbody>
-            </table>
+                </Filtros>
+                <Columnas Context="item">
+                    <tr>
+                        <td>@item.IDGob</td>
+                        <td>@item.NumMGC</td>
+                        <td>@item.Estacion</td>
+                        <td>@item.NomMS</td>
+                        <td>@item.RFC</td>
+                        <td>@item.CRE</td>
+                        <td>@item.NEstacion</td>
+                        <!--Estado del destino-->
+                        <td>
+                            <div class="form-check form-switch mx-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                       @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))" />
+                            </div>
+                        </td>
+                        <!--Editar destino-->
+                        <td>
+                            <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetDestino(item))">
+                                <i class="fa fa-solid fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
         </div>
     </div>
 </div>
@@ -210,6 +217,9 @@
 @code {
     bool isEdit = false;
 
+    Dictionary<string, string> query = new Dictionary<string, string>();
+    ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+
     public Destinos Destino { get; set; } = new Destinos();
     public List<Destinos> Destinos { get; set; } = new List<Destinos>();
 
@@ -241,11 +251,20 @@
         }
     }
 
+    private async Task LoadData(ChangeEventArgs args)
+    {
+        busquedaCatalogo.nombreDestino = args.Value?.ToString() ?? string.Empty;
+        await GetDestinos();
+    }
+
     private async Task GetDestinos()
     {
         try
         {
-            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/lista");
+            query = new Dictionary<string, string>();
+            query["nombreDestino"] = busquedaCatalogo.nombreDestino;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/lista?{uri}");
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();
@@ -253,6 +272,7 @@
             }
             else
             {
+                StateHasChanged();
                 Destinos = responseHttp.Response!;
             }
         }

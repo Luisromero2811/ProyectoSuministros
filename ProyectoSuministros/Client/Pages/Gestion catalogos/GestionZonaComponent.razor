@@ -47,38 +47,42 @@
     <div class="card-body">
         <div class="col-12 row">
             <div class="col-12">
-                <table class="table table-sm table-stripped table-bordered">
-                    <thead>
+                <Tabla Datos="Zonas">
+                    <Cabeceras>
                         <tr>
                             <th>Nombre de la Zona</th>
                             <th>Estado</th>
                             <th>Editar</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if (Zonas.Count > 0)
-                        {
-                            <Virtualize Items="Zonas" TItem="Zona" Context="item">
-                                <tr>
-                                    <td>@item.Nombre</td>
-                                    <!--Estado-->
-                                    <td>
-                                        <div class="form-check form-switch mx-2">
-                                            <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
-                                                   @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
-                                        </div>
-                                    </td>
-                                    <!--Editar-->
-                                    <td>
-                                        <button class="btn btn-sm gcom-bg-amarillo" @onclick="@(()=>@SetZona(item))">
-                                            <i class="fa fa-solid fa-edit"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </Virtualize>
-                        }
-                    </tbody>
-                </table>
+                    </Cabeceras>
+                    <Filtros>
+                        <tr class="fila">
+                            <td>
+                                <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombreZona" />
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </Filtros>
+                    <Columnas Context="item">
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <!--Estado-->
+                            <td>
+                                <div class="form-check form-switch mx-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                           @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                </div>
+                            </td>
+                            <!--Editar-->
+                            <td>
+                                <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetZona(item))">
+                                    <i class="fa fa-solid fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </Columnas>
+                </Tabla>
             </div>
         </div>
     </div>
@@ -89,13 +93,21 @@
     public Zona Zona { get; set; } = new Zona();
     public List<Zona> Zonas { get; set; } = new List<Zona>();
 
+    Dictionary<string, string> query = new Dictionary<string, string>();
+    ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+
     bool isEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetZone();
+    }
 
     private async Task SaveZona()
     {
         try
         {
-            var responseHttp = await repositorio.Post<Zona>($"api/grupo/save", Zona);
+            var responseHttp = await repositorio.Post<Zona>($"api/zona/save", Zona);
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();
@@ -104,7 +116,37 @@
             else
             {
                 await Swal.FireAsync("Éxito", $"Zona {Zona.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
-                //await Obtener_Grupos();
+                await GetZone();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadData(ChangeEventArgs args)
+    {
+        busquedaCatalogo.nombreZona = args.Value?.ToString() ?? string.Empty;
+        await GetZone();
+    }
+
+    private async Task GetZone()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["nombreZona"] = busquedaCatalogo.nombreZona;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Zona>>($"api/zona/list?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Zonas = responseHttp.Response!;
             }
         }
         catch (Exception e)
@@ -118,7 +160,7 @@
         try
         {
             var status = (bool)tp.Value!;
-            var responseHttp = await repositorio.Put<bool>($"api/zona/desactivarZona/{gt.ID}", status);
+            var responseHttp = await repositorio.Put<bool>($"api/zona/{gt.ID}", status);
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();
