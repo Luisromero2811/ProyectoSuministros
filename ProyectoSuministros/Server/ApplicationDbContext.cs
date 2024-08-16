@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using ProyectoSuministros.Shared.Modelos;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace ProyectoSuministros.Server
 {
@@ -17,10 +18,17 @@ namespace ProyectoSuministros.Server
 
             //Relaciones que existiran entre tablas
 
+            //Estado a facturas
+            modelBuilder.Entity<Factura>()
+                .HasOne(x => x.Estado)
+                .WithMany()
+                .HasForeignKey(x => x.Codest);
+
             //Facturas a destino
             modelBuilder.Entity<Factura>()
                 .HasOne(x => x.Destinos)
                 .WithMany()
+                .HasPrincipalKey(x => x.IDGob)
                 .HasForeignKey(x => x.IDDestino);
 
             //Factura a producto
@@ -30,10 +38,10 @@ namespace ProyectoSuministros.Server
                 .HasForeignKey(x => x.IDProd);
 
             //(Grupo a cliente)
-            modelBuilder.Entity<Cliente>()
-                .HasOne(x => x.Grupo)
+            modelBuilder.Entity<Grupo>()
+                .HasOne(x => x.Cliente)
                 .WithMany()
-                .HasForeignKey(x => x.Codgru);
+                .HasForeignKey(x => x.CodCte);
 
             //Razon social a cliente
             modelBuilder.Entity<RazonSocial>()
@@ -45,40 +53,40 @@ namespace ProyectoSuministros.Server
             modelBuilder.Entity<Destinos>()
                 .HasOne(x => x.RazonSocial)
                 .WithMany()
-                .HasForeignKey(x => x.ID_Rs);
+                .HasForeignKey(x => x.CodRs);
 
             //Destinos a Cluster
             modelBuilder.Entity<Destinos>()
                 .HasOne(x => x.Cluster)
                 .WithMany()
-                .HasForeignKey(x => x.ID_Cluster);
+                .HasForeignKey(x => x.IDCluster);
 
             //Destinos a Ejecutivo
             modelBuilder.Entity<Destinos>()
                 .HasOne(x => x.Ejecutivo)
                 .WithMany()
-                .HasForeignKey(x => x.ID_Ejecutivo);
+                .HasForeignKey(x => x.IDEjecutivo);
 
             //Destinos a franquicias
             modelBuilder.Entity<Destinos>()
                 .HasOne(x => x.Franquicia)
                 .WithMany()
-                .HasForeignKey(x => x.ID_Franquicia);
+                .HasForeignKey(x => x.IDFranquicia);
             //Destinos a Reparto
             modelBuilder.Entity<Destinos>()
                 .HasOne(x => x.Reparto)
                 .WithMany()
-                .HasForeignKey(x => x.ID_Reparto);
+                .HasForeignKey(x => x.IDReparto);
             //Destinos a TAD
             modelBuilder.Entity<Destinos>()
                 .HasOne(x => x.TAD)
                 .WithMany()
-                .HasForeignKey(x => x.ID_Tad);
+                .HasForeignKey(x => x.IDTad);
             //Destinos a Zona
             modelBuilder.Entity<Destinos>()
                 .HasOne(x => x.Zona)
                 .WithMany()
-                .HasForeignKey(x => x.ID_Zona);
+                .HasForeignKey(x => x.IDZona);
 
         }
 

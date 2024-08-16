@@ -2,6 +2,7 @@
 @inject SweetAlertService Swal
 @inject IJSRuntime js
 @inject GestionClusterValidation gestionCluster
+@inject ClusterDestinationValidation gestionRelacion
 
 <div class="card">
     <div class="card-header">
@@ -33,6 +34,38 @@
                                 <i class="fa fa-solid fa-xmark"></i>
                             </button>
                         }
+                    </div>
+                </div>
+            </EditForm>
+            <EditForm Model="@ClusterDestinoDTO" class="col-12" OnValidSubmit="@RelationCluster" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion" />
+                <ValidationSummary />
+                <h6>Relación Cluster-Destino</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>Cluster:</label>
+                        <RadzenDropDown @bind-Value="ClusterDestinoDTO.cluster" Data="Clusters" TValue="Cluster" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as Cluster)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as Cluster)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Destino:</label>
+                        <RadzenDropDown @bind-Value="ClusterDestinoDTO.destino" Data="DestinoCluster" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit"> 
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Destino-Cluster
+                        </button>
                     </div>
                 </div>
             </EditForm>
@@ -90,7 +123,11 @@
 @code {
     public Cluster Cluster { get; set; } = new Cluster();
     public List<Cluster> Clusters { get; set; } = new List<Cluster>();
+    public List<Destinos> Destinos { get; set; } = new List<Destinos>();
 
+    public IEnumerable<CodDenDTO> DestinoCluster { get; set; } = new List<CodDenDTO>();
+
+    public ClusterDestinoDTO ClusterDestinoDTO { get; set; } = new ClusterDestinoDTO();
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
 
@@ -99,8 +136,10 @@
     protected override async Task OnInitializedAsync()
     {
         await GetClusters();
+        await GetDestinos();
     }
 
+    //Registro de nuevos cluster
     private async Task SaveGrupo()
     {
         try
@@ -123,12 +162,35 @@
         }
     }
 
+    //Obtención de destinos
+    private async Task GetDestinos()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<IList<CodDenDTO>>($"api/destinos/listados");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinoCluster = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
     private async Task LoadData(ChangeEventArgs args)
     {
         busquedaCatalogo.nombreCluster = args.Value?.ToString() ?? string.Empty;
         await GetClusters();
     }
 
+    //Obtención de cluster
     private async Task GetClusters()
     {
         try
@@ -153,12 +215,14 @@
         }
     }
 
+    //Cancelar la edición
     private async void cancelEdit()
     {
         isEdit = false;
         Cluster = new Cluster();
     }
 
+    //Habilitar o deshabilitar los cluster
     private async Task HabilitarDeshabilitar(Cluster gt, ChangeEventArgs tp)
     {
         try
@@ -200,6 +264,7 @@
         }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
     }
 
+    //Evento para edición de cluster
     private void SetCluster(Cluster Clusters)
     {
         try
@@ -210,6 +275,28 @@
         catch (Exception e)
         {
             throw e;
+        }
+    }
+
+    //Relación de cluster y destinos
+    public async Task RelationCluster()
+    {
+        try
+        {
+            var response = await repositorio.Post<CodDenDTO>($"api/destinos/asignarCluster/{ClusterDestinoDTO.cluster.ID}", ClusterDestinoDTO.destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino Asignado a {ClusterDestinoDTO.cluster.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
         }
     }
 

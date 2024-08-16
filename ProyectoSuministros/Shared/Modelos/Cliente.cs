@@ -14,8 +14,6 @@ namespace ProyectoSuministros.Shared.Modelos
 		[MaxLength(40), DisplayName("Nombre del Cliente")]
 		public string? Nombre { get; set; }
 
-		public int? Codgru { get; set; } = 0;
-
 		[NotMapped, EpplusIgnore]
 		public Grupo? Grupo { get; set; } = null!;
 

@@ -30,44 +30,42 @@ namespace ProyectoSuministros.Shared.Modelos
 		[MaxLength(20)]
 		public string NEstacion { get; set; } = string.Empty;
 
-		public bool Activo { get; set; } = true;
+		public bool? Activo { get; set; } = true;
 
-		[MaxLength(4)]
-		public int? IDFac { get; set; } = null!;
+		//Relaciones 
+		public int? CodRs { get; set; } = 0;
 
-		public int? ID_Rs { get; set; } = null!;
-
-        public int? ID_Cluster { get; set; } = null!;
-
-        public int? ID_Ejecutivo { get; set; } = null!;
-
-        public int? ID_Franquicia { get; set; } = null!;
-
-        public int? ID_Reparto { get; set; } = null!;
-
-        public int? ID_Tad { get; set; } = null!;
-
-        public int? ID_Zona { get; set; } = null!;
-
-        [NotMapped, EpplusIgnore]
+		[NotMapped]
 		public RazonSocial? RazonSocial { get; set; } = null!;
 
-		[NotMapped, EpplusIgnore]
+		public int? IDCluster { get; set; } = 0;
+
+		[NotMapped]
 		public Cluster? Cluster { get; set; } = null!;
 
-		[NotMapped, EpplusIgnore]
+		public int? IDEjecutivo { get; set; } = 0;
+
+		[NotMapped]
 		public Ejecutivo? Ejecutivo { get; set; } = null!;
 
-		[NotMapped, EpplusIgnore]
+		public int? IDFranquicia { get; set; } = 0;
+
+		[NotMapped]
 		public Franquicia? Franquicia { get; set; } = null!;
 
-		[NotMapped, EpplusIgnore]
+		public int? IDReparto { get; set; } = 0;
+
+		[NotMapped]
 		public Reparto? Reparto { get; set; } = null!;
 
-		[NotMapped, EpplusIgnore]
+		public int? IDTad { get; set; } = 0;
+
+		[NotMapped]
 		public TAD? TAD { get; set; } = null!;
 
-		[NotMapped, EpplusIgnore]
+		public int? IDZona { get; set; } = 0;
+
+		[NotMapped]
 		public Zona? Zona { get; set; } = null!;
 	}
 }

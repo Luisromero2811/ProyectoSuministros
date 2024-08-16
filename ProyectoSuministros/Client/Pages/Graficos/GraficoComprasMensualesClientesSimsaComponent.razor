@@ -1,6 +1,60 @@
-﻿<h3>Component1</h3>
+﻿@page "/comprasMensuales"
+@inject IJSRuntime js
+@inject IRepositorio http
+@implements IDisposable
+@inject SweetAlertService Swal
+
+<h3>Compras mensuales Clientes y SIMSA 2024</h3>
+
+<canvas id="myChart" style="width:100%; max-width:700px;"></canvas>
 
 @code {
+    private DotNetObjectReference<GraficoComprasMensualesClientesSimsaComponent> objRef;
+    private List<Compras_Grafica> compras_ = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await Data();
+
+            await js.InvokeVoidAsync("initializeChart", compras_.Select(x => x.Volumen));
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    private async Task Data()
+    {
+        try
+        {
+            var responseHttp = await http.Get<List<Compras_Grafica>>("api/compras/MensualClienteSimsa");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                compras_ = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private record Compras_Grafica(double? Volumen);
 
 }
 

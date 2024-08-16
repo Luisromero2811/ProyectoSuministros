@@ -2,6 +2,7 @@
 @inject SweetAlertService Swal
 @inject IJSRuntime js
 @inject GestionTADValidation gestionTAD
+@inject TadDestinationValidation gestionRelacion
 
 <div class="card">
     <div class="card-header">
@@ -19,7 +20,7 @@
                     </div>
                     <div class="col-3">
                         <label>ID de la TAD:</label>
-                        <InputNumber @bind-Value="Tad.IDGob" class="form-control"/>
+                        <InputNumber @bind-Value="Tad.IDGob" class="form-control" />
                     </div>
                     <div class="col-3 d-flex mt-auto">
                         @if (!isEdit)
@@ -37,6 +38,38 @@
                                 <i class="fa fa-solid fa-xmark"></i>
                             </button>
                         }
+                    </div>
+                </div>
+            </EditForm>
+            <EditForm Model="@TadDestinoDTO" class="col-12" OnValidSubmit="@RelationClient" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion" />
+                <ValidationSummary />
+                <h6>Relacion TAD-Destino</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>TAD:</label>
+                        <RadzenDropDown @bind-Value="TadDestinoDTO.tad" Data="TADs" TValue="TAD" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as TAD)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as TAD)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Destino:</label>
+                        <RadzenDropDown @bind-Value="TadDestinoDTO.destino" Data="DestinoTAD" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Destino-Cliente
+                        </button>
                     </div>
                 </div>
             </EditForm>
@@ -99,6 +132,10 @@
     public TAD Tad { get; set; } = new TAD();
     public List<TAD> TADs { get; set; } = new List<TAD>();
 
+    TadDestinoDTO TadDestinoDTO { get; set; } = new TadDestinoDTO();
+
+    public IEnumerable<CodDenDTO> DestinoTAD { get; set; } = new List<CodDenDTO>();
+
     bool isEdit = false;
 
     Dictionary<string, string> query = new Dictionary<string, string>();
@@ -107,6 +144,8 @@
     protected override async Task OnInitializedAsync()
     {
         await GetTAD();
+        await GetTADs();
+        await GetIlistDestinos();
     }
 
     private async Task SaveTad()
@@ -145,6 +184,27 @@
             query["nombreTad"] = busquedaCatalogo.nombreTad;
             var uri = Constructor_De_URL_Parametros.Generar_URL(query);
             var responseHttp = await repositorio.Get<List<TAD>>($"api/Tad/list?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                TADs = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetTADs()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<TAD>>($"api/Tad/listado");
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();
@@ -219,6 +279,49 @@
     {
         isEdit = false;
         Tad = new TAD();
+    }
+
+    private async Task RelationClient()
+    {
+        try
+        {
+            var response = await repositorio.Post<CodDenDTO>($"api/destinos/asignarTAD/{TadDestinoDTO.tad.IDGob}", TadDestinoDTO.destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino Asignado a {TadDestinoDTO.tad.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetIlistDestinos()
+    {
+        try
+        {
+            var response = await repositorio.Get<IList<CodDenDTO>>("api/destinos/listados");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                DestinoTAD = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
     }
 
 }

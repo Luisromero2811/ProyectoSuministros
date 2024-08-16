@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProyectoSuministros.Shared.DTOs;
 using ProyectoSuministros.Shared.Modelos;
 
@@ -21,7 +22,7 @@ namespace ProyectoSuministros.Server.Controllers
             this.context = context;
         }
 
-        //Creación de clientes
+        //Creación de razones sociales
         [HttpPost("save")]
         public async Task<ActionResult> PostCliente([FromBody] RazonSocial razonSocial)
         {
@@ -52,7 +53,23 @@ namespace ProyectoSuministros.Server.Controllers
                 return BadRequest(e.Message);
             }
         }
+        //Listado generico
+        [HttpGet("lista")]
+        public async Task<ActionResult> ListAll()
+        {
+            try
+            {
+                var razonessociales = await context.Razonsocial
+                    .ToListAsync();
+                return Ok(razonessociales);
+            }
+            catch (Exception e)
+            {
 
+                return BadRequest(e.Message);
+            }
+        }
+        //Listado del cual podemos filtrar
         [HttpGet("list")]
         public async Task<ActionResult> GetList([FromQuery] ParametrosBusquedaCatalogo razonSocial)
         {
@@ -70,7 +87,7 @@ namespace ProyectoSuministros.Server.Controllers
                 return BadRequest(e.Message);
             }
         }
-
+        //Activación y desactivación de estados
         [HttpPut("{ID:int}")]
         public async Task<ActionResult> ChangeStatus([FromRoute] int Id, [FromBody] bool status)
         {
@@ -92,6 +109,29 @@ namespace ProyectoSuministros.Server.Controllers
                 await context.SaveChangesAsync();
 
                 return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("filtraractivos")]
+        public ActionResult Obtener_Grupos_Activos([FromQuery] RazonSocial razonSocial)
+        {
+            try
+            {
+                var razones = context.Razonsocial
+                    .Where(x => x.Activo == true)
+                    .IgnoreAutoIncludes()
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(razonSocial.Nombre))
+                    razones = razones.Where(x => x.Nombre.ToLower().Contains(razonSocial.Nombre.ToLower())
+                    && x.Activo == true
+                    );
+
+                return Ok(razones);
             }
             catch (Exception e)
             {

@@ -17,6 +17,14 @@
                         <label>Nombre de la razon social:</label>
                         <InputText @bind-Value="razonSocial.Nombre" class="form-control" MaxLenght="128" />
                     </div>
+                    <!--Clientes-->
+                    <div class="col-3">
+                        <label>Clientes:</label>
+                        <RadzenDropDown @bind-Value="razonSocial.IDCte" TValue="int?" Data="clientes" ValueProperty="ID" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
                     <div class="col-3 d-flex mt-auto">
                         @if (!isEdit)
                         {
@@ -98,10 +106,76 @@
     </div>
 </div>
 
+<!--Estilos para tabla-->
+<style>
+    .button-circle { /* Green */
+        border: none;
+        color: white;
+        padding: .40rem .60rem;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: .75rem;
+        cursor: pointer;
+        border-radius: 2rem;
+    }
+
+    .fila th {
+        position: -webkit-sticky;
+        position: sticky;
+        text-align: center;
+        top: 0;
+        background-color: #f2f2f2;
+    }
+
+    .fila td {
+        position: -webkit-sticky;
+        position: sticky;
+        text-align: center;
+        top: 28px;
+        background-color: #f2f2f2;
+    }
+
+    .sticky-column {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        background-color: white;
+    }
+
+    .sticky-column-header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        background-color: white;
+    }
+
+    .sticky-column, .sticky-column + th, .sticky-column + td {
+        min-width: 180px;
+    }
+
+    .th-resizable {
+        position: relative;
+        cursor: col-resize;
+    }
+
+        .th-resizable::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 8px;
+            background: transparent;
+        }
+</style>
+
 
 @code {
     public RazonSocial razonSocial = new RazonSocial();
     public List<RazonSocial> razonSociales = new List<RazonSocial>();
+    public List<Cliente> clientes = new List<Cliente>();
 
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
@@ -111,6 +185,7 @@
     protected override async Task OnInitializedAsync()
     {
         await GetRazonSocial();
+        await GetClientes();
     }
 
     private async Task SaveRSocial()
@@ -132,6 +207,27 @@
         catch (Exception e)
         {
             await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetClientes()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Cliente>>($"api/cliente/lista");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                clientes = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Exito", e.Message, SweetAlertIcon.Error);
         }
     }
 

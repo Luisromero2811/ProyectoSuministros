@@ -45,11 +45,16 @@ namespace ProyectoSuministros.Shared.Modelos
 
 		public int IDDestino { get; set; }
 
+		public int? Codest { get; set; } = 0;
+
 		[NotMapped, EpplusIgnore]
 		public Destinos Destinos { get; set; } = null!;
 
 		[NotMapped, EpplusIgnore]
 		public Producto Producto { get; set; } = null!;
+
+		[NotMapped, EpplusIgnore]
+		public Estado Estado { get; set; } = null!;
 	}
 }
 

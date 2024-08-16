@@ -53,6 +53,20 @@ namespace ProyectoSuministros.Server.Controllers
             }
         }
 
+        [HttpGet("lista")]
+        public async Task<ActionResult> GetAll()
+        {
+            try
+            {
+                var grupos = context.Grupo.ToList();
+                return Ok(grupos);
+            } 
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         [HttpGet("list")]
         public async Task<ActionResult> GetList([FromQuery] ParametrosBusquedaCatalogo grupo)
         {

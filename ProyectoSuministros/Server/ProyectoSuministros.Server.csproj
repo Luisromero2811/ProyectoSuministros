@@ -54,6 +54,8 @@
     <None Remove="Controllers\Reparto\" />
     <None Remove="Controllers\TAD\" />
     <None Remove="Controllers\Zona\" />
+    <None Remove="Controllers\Graficos\" />
+    <None Remove="Controllers\Graficos\Compras\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Helpers\" />
@@ -68,5 +70,7 @@
     <Folder Include="Controllers\Reparto\" />
     <Folder Include="Controllers\TAD\" />
     <Folder Include="Controllers\Zona\" />
+    <Folder Include="Controllers\Graficos\" />
+    <Folder Include="Controllers\Graficos\Compras\" />
   </ItemGroup>
 </Project>

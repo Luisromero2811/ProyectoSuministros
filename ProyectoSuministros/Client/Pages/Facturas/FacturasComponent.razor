@@ -37,7 +37,7 @@
     <Tabla Datos="facturas">
         <Cabeceras>
             <tr>
-                <th class="resizable-column" style="width:60px !important;">Editar</th>
+                <th class="resizable-column" style="width:60px !important;">Cancelar</th>
                 <th class="resizable-column" style="width:80px !important;">Tipo de documento</th>
                 <th class="resizable-column" style="width:120px !important">Número de remisión</th>
                 <th class="resizable-column" style="width:120px !important">Número de factura</th>
@@ -72,7 +72,7 @@
         <Columnas Context="factura">
             <tr>
                 <td>
-                    <button class="btn btn-primary col-12" @onclick="@(()=>setEdit(factura))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn btn-danger col-12" @onclick="@(()=>cancelFactura(factura))"><i class="fa fa-solid fa-cancel"></i></button>
                 </td>
                 <td>@factura.TipDOC</td>
                 <td>@factura.NRem</td>
@@ -113,6 +113,7 @@
     private List<File> files = new();
     private List<UploadResult> UploadResults = new();
     List<Factura> facturas { get; set; } = new List<Factura>();
+    private List<Factura> facturasS = new();
 
     Factura Factura { get; set; } = new Factura();
 
@@ -224,10 +225,34 @@
         }
     }
 
-    private async Task setEdit(Factura factura)
+    private async Task cancelFactura(Factura factura)
     {
         try
         {
+            var confirm = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Icon = SweetAlertIcon.Info,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Aceptar",
+                CancelButtonText = "Cancelar",
+                Text = "¿Desea cancelar la factura?"
+            });
+
+            if (!string.IsNullOrEmpty(confirm.Value))
+            {
+                var response = await repositorio.Delete($"api/facturas/cancel/{factura.ID}");
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    await Swal.FireAsync("Éxito", $"La factura {factura.NFac} fue cancelada existosamente", SweetAlertIcon.Success);
+                    await LoadData();
+                }
+            }
+
             Factura = factura;
         }
         catch (Exception e)

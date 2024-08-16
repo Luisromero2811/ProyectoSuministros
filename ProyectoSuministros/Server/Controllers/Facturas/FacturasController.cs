@@ -206,6 +206,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                             Importe = impor,
                                             Moneda = moneda,
                                             IDDestino = Convert.ToInt32(destinoIdentificador),
+                                            Codest = 1
                                         };
 
                                         //Practica para ver si se editan o se guardan por primera vez los datos.
@@ -245,6 +246,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
             try
             {
                 var facturas = context.Facturas.Include(x => x.Producto)
+                    .Where(x => x.Codest == 1)
                     .AsQueryable();
 
                 //Filtros
@@ -270,6 +272,31 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
             }
         }
 
+        [HttpDelete("cancel/{ID:int}")]
+        public async Task<ActionResult> CancelFactura([FromRoute] int ID)
+        {
+            try
+            {
+                Factura? factura = context.Facturas.FirstOrDefault(x => x.ID == ID);
+
+                if (factura is null)
+                {
+                    return NotFound(factura);
+                }
+
+                factura.Codest = 2;
+
+                context.Update(factura);
+
+                await context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }
 
