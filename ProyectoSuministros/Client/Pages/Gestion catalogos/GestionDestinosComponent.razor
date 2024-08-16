@@ -2,6 +2,7 @@
 @inject SweetAlertService Swal
 @inject IJSRuntime js
 @inject GestionDestinoValidation gestionDestino
+@inject ClientDestinationValidation gestionRelacion
 
 <div class="card">
     <div class="card-header">
@@ -65,6 +66,38 @@
                     </div>
                 </div>
             </EditForm>
+            <EditForm Model="@RazonSocialDestinoDTO" class="col-12" OnValidSubmit="@RelationClient" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion" />
+                <ValidationSummary />
+                <h6>Relacion Razon Social-Destino</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>Razon Social:</label>
+                        <RadzenDropDown @bind-Value="RazonSocialDestinoDTO.razonSocial" Data="RazonSocial" TValue="RazonSocial" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as RazonSocial)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as RazonSocial)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Destino:</label>
+                        <RadzenDropDown @bind-Value="RazonSocialDestinoDTO.destino" Data="DestinoRazonSocial" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Destino-Cliente
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
         </div>
     </div>
 </div>
@@ -78,17 +111,15 @@
         <div class="col-12 row">
             <div class="col-3 mb-2">
                 <label>Razon Social</label>
-                @*
-                    <DropDownFilter Listado="GrupoActivo" TListado="Grupo" TValue="Int16?" Default_Placeholder="Seleccione un Grupo" FiltrarValor="Obtener_Grupos"
-                                    Propiedad_Valor="Cod" On_Change_Method="@GetCliente" @bind-Valor="Cod_Gru">
-                        <RenderValue>
-                            @context.Den
-                        </RenderValue>
-                        <Render>
-                            @context.Den
-                        </Render>
-                    </DropDownFilter>
-                *@
+                <DropDownFilter Listado="RazonSocial" TListado="RazonSocial" TValue="int?" Propiedad_Valor="ID" On_Change_Method="@ChangeDestinos" @bind-Valor="Destino.CodRs"
+                                Default_Placeholder="Seleccione una Razon Social" FiltrarValor="Obtener_RazonesSociales">
+                    <RenderValue>
+                        @context.Nombre
+                    </RenderValue>
+                    <Render>
+                        @context.Nombre
+                    </Render>
+                </DropDownFilter>
             </div>
         </div>
         <div class="col-12">
@@ -219,13 +250,19 @@
 
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+    RazonSocialDestinoDTO RazonSocialDestinoDTO { get; set; } = new RazonSocialDestinoDTO();
+
+    public IEnumerable<CodDenDTO> DestinoRazonSocial { get; set; } = new List<CodDenDTO>();
 
     public Destinos Destino { get; set; } = new Destinos();
     public List<Destinos> Destinos { get; set; } = new List<Destinos>();
+    public List<RazonSocial> RazonSocial { get; set; } = new List<RazonSocial>();
 
     protected override async Task OnInitializedAsync()
     {
-        await GetDestinos();
+        await GetIlistDestinos();
+        await GetRazonSocialList();
+        await Obtener_RazonesSociales(string.Empty);
     }
 
     private async Task CreateDestinos()
@@ -242,7 +279,72 @@
             {
                 await Swal.FireAsync("Exito", $"Destino {Destino.Estacion} creado exitosamente", SweetAlertIcon.Success);
                 StateHasChanged();
-                await GetDestinos();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                Destinos = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetRazonSocialList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<RazonSocial>>($"api/razonsocial/lista");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                RazonSocial = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetIlistDestinos()
+    {
+        try
+        {
+            var response = await repositorio.Get<IList<CodDenDTO>>("api/destinos/listados");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                DestinoRazonSocial = response.Response;
             }
         }
         catch (Exception e)
@@ -253,16 +355,23 @@
 
     private async Task LoadData(ChangeEventArgs args)
     {
-        busquedaCatalogo.nombreDestino = args.Value?.ToString() ?? string.Empty;
-        await GetDestinos();
+        Dictionary<string, string> queryStringObject = new Dictionary<string, string>();
+        if (queryStringObject is null) { queryStringObject = new Dictionary<string, string>(); }
+        queryStringObject["nombreDestino"] = busquedaCatalogo.nombreDestino;
+
+        var DefaultValues = new List<string>() { "false", "", "0" };
+        var uri = string.Join("&", queryStringObject.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+        .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+        await ChangeDestinos();
     }
 
-    private async Task GetDestinos()
+    private async Task ChangeDestinos()
     {
         try
         {
             query = new Dictionary<string, string>();
-            query["nombreDestino"] = busquedaCatalogo.nombreDestino;
+            query["nombreDestino"] = busquedaCatalogo.nombreDestino ?? string.Empty;
+            query["codcte"] = RazonSocial.FirstOrDefault(x => x.ID == Destino.CodRs)?.ID.ToString() ?? string.Empty;
             var uri = Constructor_De_URL_Parametros.Generar_URL(query);
             var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/lista?{uri}");
             if (responseHttp.Error)
@@ -340,6 +449,54 @@
     {
         isEdit = false;
         Destino = new Destinos();
+    }
+
+    private async Task RelationClient()
+    {
+        try
+        {
+            var response = await repositorio.Post<CodDenDTO>($"api/destinos/asignar/{RazonSocialDestinoDTO.razonSocial.ID}", RazonSocialDestinoDTO.destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino Asignado a {RazonSocialDestinoDTO.razonSocial.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_RazonesSociales(string value)
+    {
+        try
+        {
+            Dictionary<string, string> query = new();
+            query["Nombre"] = value;
+
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+
+            var response = await repositorio.Get<List<RazonSocial>>($"api/razonsocial/filtraractivos?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                RazonSocial = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
     }
 
 }

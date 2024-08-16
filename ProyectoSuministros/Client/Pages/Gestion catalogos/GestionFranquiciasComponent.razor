@@ -2,6 +2,7 @@
 @inject SweetAlertService Swal
 @inject IJSRuntime js
 @inject GestionFranquiciasValidation gestionFranquicia
+@inject FranchiseDestinationValidation gestionRelacion
 
 <div class="card">
     <div class="card-header">
@@ -33,6 +34,38 @@
                                 <i class="fa fa-solid fa-xmark"></i>
                             </button>
                         }
+                    </div>
+                </div>
+            </EditForm>
+            <EditForm Model="@FranquiciaDestinoDTO" class="col-12" OnValidSubmit="@RelationClient" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion" />
+                <ValidationSummary />
+                <h6>Relacion Razon Social-Destino</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>Franquicia:</label>
+                        <RadzenDropDown @bind-Value="FranquiciaDestinoDTO.franquicia" Data="Franquicias" TValue="Franquicia" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as Franquicia)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as Franquicia)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Destino:</label>
+                        <RadzenDropDown @bind-Value="FranquiciaDestinoDTO.destino" Data="DestinoFranquicia" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Destino-Cliente
+                        </button>
                     </div>
                 </div>
             </EditForm>
@@ -91,6 +124,10 @@
     public Franquicia Franquicia { get; set; } = new Franquicia();
     public List<Franquicia> Franquicias { get; set; } = new List<Franquicia>();
 
+    FranquiciaDestinoDTO FranquiciaDestinoDTO { get; set; } = new FranquiciaDestinoDTO();
+
+    public IEnumerable<CodDenDTO> DestinoFranquicia { get; set; } = new List<CodDenDTO>();
+
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
 
@@ -99,6 +136,8 @@
     protected override async Task OnInitializedAsync()
     {
         await GetFranquicias();
+        await GetDestinoIList();
+        await GetFranchises();
     }
 
     private async Task SaveFranquicia()
@@ -211,6 +250,71 @@
     {
         isEdit = false;
         Franquicia = new Franquicia();
+    }
+
+    private async Task RelationClient()
+    {
+        try
+        {
+            var response = await repositorio.Post<CodDenDTO>($"api/destinos/asignarFranquicias/{FranquiciaDestinoDTO.franquicia.ID}", FranquiciaDestinoDTO.destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino Asignado a {FranquiciaDestinoDTO.franquicia.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetFranchises()
+    {
+        try
+        {
+            var response = await repositorio.Get<List<Franquicia>>("api/franquicia/listados");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                Franquicias = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinoIList()
+    {
+        try
+        {
+            var response = await repositorio.Get<IList<CodDenDTO>>("api/destinos/listados");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                DestinoFranquicia = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
     }
 
 }

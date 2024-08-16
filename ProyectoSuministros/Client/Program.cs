@@ -35,5 +35,13 @@ void ConfigureServices(IServiceCollection services)
     services.AddScoped<GestionTADValidation>();
     services.AddScoped<GestionZonaValidation>();
 
+    services.AddScoped<ClientDestinationValidation>();
+    services.AddScoped<ClusterDestinationValidation>();
+    services.AddScoped<EjecutiveDestinationValidation>();
+    services.AddScoped<FranchiseDestinationValidation>();
+    services.AddScoped<DistributionDestinationValidation>();
+    services.AddScoped<TadDestinationValidation>();
+    services.AddScoped<ZoneDestinationValidation>();
+
     services.AddScoped<Constructor_De_URL_Parametros>();
 }

@@ -81,6 +81,7 @@
         //Facturas
         Menus.Add(new Menu() { name = "Facturas", icon = "file-invoice-dollar", path = "/facturas", });
 
+        //Configuración
         Menus.Add(new Menu()
         {
             isMenu = true,
@@ -97,6 +98,7 @@
                 }
         });
 
+        //Gráficos
         Menus.Add(new Menu()
         {
             isMenu = true,
@@ -104,14 +106,14 @@
             icon = "chart-bar",
             Menus = new()
 {
-                new()
-                {
-                    isMenu = true,
-                    name = "Gráficas de Ventas",
-                    icon = "money-bill-trend-up",
-                    Menus = new()
-    {
-                          new()
+                        new()
+                        {
+                            isMenu = true,
+                            name = "Gráficas de Compras",
+                            icon = "cash-register",
+                            Menus = new()
+{
+                                               new()
                 {
                     name = "Volumen por destino en M3 mensual",
                     icon = "chart-simple",
@@ -124,16 +126,7 @@
                     icon = "chart-simple",
                     path = ""
                 },
-                    }
-                },
-                new()
-                {
-                    isMenu = true,
-                    name = "Gráficas de Compras",
-                    icon = "cash-register",
-                    Menus = new()
-    {
-                        new()
+                                new()
                 {
                     name = "Comportamiento diario de compras",
                     icon = "chart-line",
@@ -149,7 +142,7 @@
                 {
                     name = "Compras mensuales clientes y SIMSA",
                     icon = "chart-column",
-                    path = ""
+                    path = "comprasMensuales"
                 },
                  new()
                 {
@@ -157,10 +150,15 @@
                     icon = "chart-column",
                     path = ""
                 },
-                    }
-                },
+                            }
+                        },
+
             }
         });
+
+        ////Indicadores
+        //Menus.Add(new Menu() { name = "Indicadores", icon = "file-lines", path = "/facturas", });
+
     }
 
     private async void CloseMenuLateral()

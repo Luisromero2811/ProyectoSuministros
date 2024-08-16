@@ -2,6 +2,7 @@
 @inject SweetAlertService Swal
 @inject IJSRuntime js
 @inject GestionZonaValidation gestionZona
+@inject ZoneDestinationValidation gestionRelacion
 
 <div class="card">
     <div class="card-header">
@@ -33,6 +34,38 @@
                                 <i class="fa fa-solid fa-xmark"></i>
                             </button>
                         }
+                    </div>
+                </div>
+            </EditForm>
+            <EditForm Model="@ZonaDestinoDTO" class="col-12" OnValidSubmit="@RelationClient" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion" />
+                <ValidationSummary />
+                <h6>Relacion Zona-Destino</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>Zona:</label>
+                        <RadzenDropDown @bind-Value="ZonaDestinoDTO.zona" Data="Zonas" TValue="Zona" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as Zona)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as Zona)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Destino:</label>
+                        <RadzenDropDown @bind-Value="ZonaDestinoDTO.destino" Data="DestinoZona" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Destino-Cliente
+                        </button>
                     </div>
                 </div>
             </EditForm>
@@ -93,6 +126,9 @@
     public Zona Zona { get; set; } = new Zona();
     public List<Zona> Zonas { get; set; } = new List<Zona>();
 
+    ZonaDestinoDTO ZonaDestinoDTO { get; set; } = new ZonaDestinoDTO();
+    public IEnumerable<CodDenDTO> DestinoZona { get; set; } = new List<CodDenDTO>();
+
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
 
@@ -101,6 +137,8 @@
     protected override async Task OnInitializedAsync()
     {
         await GetZone();
+        await GetZones();
+        await GetIlistDestinos();
     }
 
     private async Task SaveZona()
@@ -139,6 +177,27 @@
             query["nombreZona"] = busquedaCatalogo.nombreZona;
             var uri = Constructor_De_URL_Parametros.Generar_URL(query);
             var responseHttp = await repositorio.Get<List<Zona>>($"api/zona/list?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Zonas = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetZones()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Zona>>($"api/zona/listado");
             if (responseHttp.Error)
             {
                 var message = await responseHttp.ObtenerMensajeError();
@@ -213,6 +272,49 @@
     {
         isEdit = false;
         Zona = new Zona();
+    }
+
+    private async Task GetIlistDestinos()
+    {
+        try
+        {
+            var response = await repositorio.Get<IList<CodDenDTO>>("api/destinos/listados");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                DestinoZona = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task RelationClient()
+    {
+        try
+        {
+            var response = await repositorio.Post<CodDenDTO>($"api/destinos/asignarZona/{ZonaDestinoDTO.zona.ID}", ZonaDestinoDTO.destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino asignado a {ZonaDestinoDTO.zona.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
     }
 
 }

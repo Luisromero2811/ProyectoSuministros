@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using OfficeOpenXml.Attributes;
 
 namespace ProyectoSuministros.Shared.Modelos
 {
@@ -11,9 +13,10 @@ namespace ProyectoSuministros.Shared.Modelos
 		[MaxLength(220)]
 		public string Nombre { get; set; }
 
-		public int IDDes { get; set; }
-
 		public bool Activo { get; set; } = true;
+
+		[NotMapped, EpplusIgnore]
+		public Destinos? Destinos { get; set; } = null!;
  	}
 }
 

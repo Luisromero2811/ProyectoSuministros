@@ -72,6 +72,22 @@ namespace ProyectoSuministros.Server.Controllers
             }
         }
 
+        [HttpGet("listado")]
+        public async Task<ActionResult> GetListado()
+        {
+            try
+            {
+                var tad = context.TAD
+                    .Where(x => x.Activo == true)
+                    .ToList();
+                return Ok(tad);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         [HttpPut("{ID:int}")]
         public async Task<ActionResult> ChangeStatus([FromRoute] int Id, [FromBody] bool status)
         {

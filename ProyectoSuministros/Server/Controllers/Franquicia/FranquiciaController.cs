@@ -71,6 +71,23 @@ namespace ProyectoSuministros.Server.Controllers
             }
         }
 
+        [HttpGet("listados")]
+        public async Task<ActionResult> GetIList()
+        {
+            try
+            {
+                var franquicias = context.Franquicia
+                    .Where(x => x.Activo == true)
+                    .ToList();
+
+                return Ok(franquicias);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         [HttpPut("{ID:int}")]
         public async Task<ActionResult> ChangeStatus([FromRoute] int Id, [FromBody] bool status)
         {

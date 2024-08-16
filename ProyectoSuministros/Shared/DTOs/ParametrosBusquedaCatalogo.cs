@@ -5,9 +5,13 @@ namespace ProyectoSuministros.Shared.DTOs
 	{
 		//Destino
 		public string nombreDestino { get; set; } = string.Empty!;
+        public int codcte { get; set; } = 0;
 
-		//Grupos
-		public string nombreGrupo { get; set; } = string.Empty!;
+        //Grupos
+        public string nombreGrupo { get; set; } = string.Empty!;
+
+		//Clientes
+		public string nombreCliente { get; set; } = string.Empty!;
 
 		//Razon Social
 		public string nombrerazonSocial { get; set; } = string.Empty!;
