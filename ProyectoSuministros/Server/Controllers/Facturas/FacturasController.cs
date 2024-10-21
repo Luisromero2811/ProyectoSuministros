@@ -196,7 +196,7 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                             NRem = numero_remision,
                                             NFac = numero_factura,
                                             IDProd = prd.ID,
-                                            Fch_Ven = DateTime.Now,
+                                            Fch_Ven = fecha_vencimiento,
                                             Destino = destino,
                                             Vehiculo = vehiculo,
                                             VolNat = vol_nat,
@@ -250,6 +250,14 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                     .AsQueryable();
 
                 //Filtros
+                if (!string.IsNullOrEmpty(parametros.nremision))
+                    facturas = facturas.Where(x => x.NRem != null && !string.IsNullOrEmpty(x.NRem) && x.NRem.ToLower().Contains(parametros.nremision.ToLower()));
+                if (!string.IsNullOrEmpty(parametros.nfactura))
+                    facturas = facturas.Where(x => x.NFac != null && !string.IsNullOrEmpty(x.NFac) && x.NFac.ToLower().Contains(parametros.nfactura.ToLower()));
+                if (!string.IsNullOrEmpty(parametros.producto))
+                    facturas = facturas.Where(x => x.Producto.Nombre != null && !string.IsNullOrEmpty(x.Producto.Nombre) && x.Producto.Nombre.ToLower().Contains(parametros.producto.ToLower()));
+                if (!string.IsNullOrEmpty(parametros.destino))
+                    facturas = facturas.Where(x => x.Destino != null && !string.IsNullOrEmpty(x.Destino) && x.Destino.ToLower().Contains(parametros.destino.ToLower()));
 
                 await HttpContext.InsertarParametrosPaginacion(facturas, parametros.tamanopagina, parametros.pagina);
 

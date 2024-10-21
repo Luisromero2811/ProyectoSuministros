@@ -19,8 +19,13 @@
                     </div>
                     <!--Clientes-->
                     <div class="col-3">
-                        <label>Clientes:</label>
-                        <RadzenDropDown @bind-Value="razonSocial.IDCte" TValue="int?" Data="clientes" ValueProperty="ID" TextProperty="Nombre"
+                        @*<label>Clientes:</label>
+                            <RadzenDropDown @bind-Value="razonSocial.IDCte" TValue="int?" Data="clientes" ValueProperty="ID" TextProperty="Nombre"
+                                            AllowVirtualization="true" AllowFiltering="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            </RadzenDropDown>*@
+                        <label>Grupo empresarial:</label>
+                        <RadzenDropDown @bind-Value="razonSocial.IDGrupo" TValue="int?" Data="Grupos" ValueProperty="ID" TextProperty="Nombre"
                                         AllowVirtualization="true" AllowFiltering="true"
                                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
                         </RadzenDropDown>
@@ -176,6 +181,7 @@
     public RazonSocial razonSocial = new RazonSocial();
     public List<RazonSocial> razonSociales = new List<RazonSocial>();
     public List<Cliente> clientes = new List<Cliente>();
+    public List<Grupo> Grupos = new List<Grupo>();
 
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
@@ -185,7 +191,8 @@
     protected override async Task OnInitializedAsync()
     {
         await GetRazonSocial();
-        await GetClientes();
+        //await GetClientes();
+        await GetGroups();
     }
 
     private async Task SaveRSocial()
@@ -207,6 +214,27 @@
         catch (Exception e)
         {
             await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetGroups()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Grupo>>($"api/grupo/lista");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Exito", e.Message, SweetAlertIcon.Error);
         }
     }
 

@@ -15,8 +15,7 @@ namespace ProyectoSuministros.Shared.Modelos
 
 		public bool? Activo { get; set; } = true;
 
-		[EpplusIgnore, NotMapped]
-		public Destinos? Destinos { get; set; } = null!;
-	}
+        public List<Destinos> Destinos { get; set; } = new List<Destinos>();
+    }
 }
 

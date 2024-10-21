@@ -1,0 +1,54 @@
+﻿@page "/"
+@inject IJSRuntime Js
+@inject IRepositorio Repositorio
+@inject SweetAlertService Swal
+@implements IDisposable
+
+<h3>Comportamiento diario de Compras (Mes en curso)</h3>
+
+<canvas id="myChartComportamiento" style="width:100%; height: 600px;"></canvas>
+
+@code {
+    private DotNetObjectReference<GraficoComportamientoDiarioComponent> objRef;
+    private List<Comportamiento_Diario> compras_ = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await Data();
+
+            await Js.InvokeVoidAsync("initializeChartComportamientoDiario", compras_.Select(x => x.Fecha.ToString("dd-MM-yyyy")).ToArray(), compras_.Select(x => x.VolumenCliente), compras_.Select(x => x.VolumenSimsa));
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    private async Task Data()
+    {
+        try
+        {
+            var responseHttp = await Repositorio.Get<List<Comportamiento_Diario>>($"api/compras/ComportamientoDiario");
+            if (!responseHttp.Error)
+            {
+                compras_ = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private record Comportamiento_Diario(DateTime Fecha, double? VolumenCliente, double? VolumenSimsa);
+}
+

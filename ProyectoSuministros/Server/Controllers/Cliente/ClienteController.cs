@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProyectoSuministros.Shared.DTOs;
 using ProyectoSuministros.Shared.Modelos;
 
@@ -63,6 +64,25 @@ namespace ProyectoSuministros.Server.Controllers
             }
             catch (Exception e)
             {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("listados")]
+        public async Task<ActionResult> GetAll()
+        {
+            try
+            {
+
+                var clientes = await context.Cliente
+                    .Select(x => new CodDenDTO { Cod = (int)x.ID, Den = x.Nombre! })
+                    .OrderBy(x => x.Den)
+                    .ToListAsync();
+                return Ok(clientes);
+            }
+            catch (Exception e)
+            {
+
                 return BadRequest(e.Message);
             }
         }

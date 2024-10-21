@@ -1,0 +1,62 @@
+﻿@page "/comprasMensualesAñoActual"
+@inject IJSRuntime Js
+@inject IRepositorio Repositorio
+@inject SweetAlertService Swal
+@implements IDisposable
+
+<h3>Compras mensuales 2024 Cliente / SIMSA</h3>
+
+<canvas id="myChartMes" style="width:100%; height: 600px;"></canvas>
+
+@code {
+    private DotNetObjectReference<GraficoCompraComponent> objRef;
+    private List<Compras_GraficaMensuales> compras_ = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await Data();
+
+            await Js.InvokeVoidAsync("initializeChartComprasAñoActual",
+                compras_.Select(x => x.Mes).ToList(),
+                compras_.Select(x => x.VolumenCliente).ToList(),
+                compras_.Select(x => x.VolumenSimsa).ToList());
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    private async Task Data()
+    {
+        try
+        {
+            var responseHttp = await Repositorio.Get<List<Compras_GraficaMensuales>>("api/compras/ComprasMensuales2024");
+            if (!responseHttp.Error)
+            {
+                compras_ = responseHttp.Response;
+
+                foreach (var compra in compras_)
+                {
+                    Console.WriteLine($"Mes: {compra.Mes}, VolumenCliente: {compra.VolumenCliente}, VolumenSimsa: {compra.VolumenSimsa}");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private record Compras_GraficaMensuales(string Mes, double? VolumenCliente, double? VolumenSimsa);
+}
+

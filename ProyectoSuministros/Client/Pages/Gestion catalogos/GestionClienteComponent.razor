@@ -2,24 +2,18 @@
 @inject SweetAlertService Swal
 @inject IJSRuntime js
 @inject GestionClienteValidation gestionCliente
-
+@inject GroupClientValidation gestionRelacion
+ 
 <div class="card">
     <div class="card-header">
         <b>Catalogo de Clientes</b>
     </div>
     <div class="card-body">
         <div class="col-12">
-            <EditForm Model="Cliente" class="form col-12" OnValidSubmit="@SaveCliente" Context="validacion">
+            <EditForm Model="Cliente" class="col-12 row" OnValidSubmit="@SaveCliente" Context="validacion">
                 <FluentValidationValidator Validator="gestionCliente" />
                 <ValidationSummary />
                 <div class="col-12 row">
-                    @*<div class="col-3">
-                        <label>Grupo Empresarial:</label>
-                        <RadzenDropDown @bind-Value="Cliente.Codgru" TValue="int?" Data="Grupos" ValueProperty="ID" TextProperty="Nombre"
-                                        AllowVirtualization="true" AllowFiltering="true"
-                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
-                        </RadzenDropDown>
-                    </div>*@
                     <div class="col-3">
                         <label>Nombre del cliente:</label>
                         <InputText @bind-Value="Cliente.Nombre" class="form-control" MaxLenght="40" />
@@ -40,6 +34,38 @@
                                 <i class="fa fa-solid fa-xmark"></i>
                             </button>
                         }
+                    </div>
+                </div>
+            </EditForm>
+            <EditForm Model="@GrupoClienteDTO" class="col-12" OnValidSubmit="@RelationClient" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion"/>
+                <ValidationSummary />
+                <h6>Relación Grupo-Cliente</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>Grupo:</label>
+                        <RadzenDropDown @bind-Value="GrupoClienteDTO.Grupo" Data="Grupos" TValue="Grupo" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as Grupo)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as Grupo)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Cliente:</label>
+                        <RadzenDropDown @bind-Value="GrupoClienteDTO.Cliente" Data="ClienteGrupo" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Grupo-Cliente
+                        </button>
                     </div>
                 </div>
             </EditForm>
@@ -174,6 +200,10 @@
 </style>
 
 @code {
+    GrupoClienteDTO GrupoClienteDTO { get; set; } = new GrupoClienteDTO();
+
+    public IEnumerable<CodDenDTO> ClienteGrupo { get; set; } = new List<CodDenDTO>();
+
     public Cliente Cliente { get; set; } = new Cliente();
     public List<Cliente> Clientes { get; set; } = new List<Cliente>();
     public List<Grupo> Grupos { get; set; } = new List<Grupo>();
@@ -187,6 +217,7 @@
     {
         await GetClientes();
         await GetGrupos();
+        await GetIClients();
     }
 
     private async Task SaveCliente()
@@ -232,6 +263,27 @@
         }
     }
 
+    private async Task GetIClients()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<IList<CodDenDTO>>($"api/Cliente/listados");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                ClienteGrupo = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
     private async Task LoadData(ChangeEventArgs args)
     {
         busquedaCatalogo.nombreCliente = args.Value?.ToString() ?? string.Empty;
@@ -321,5 +373,27 @@
         isEdit = false;
         Cliente = new Cliente();
     }
+
+    private async Task RelationClient()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Post<CodDenDTO>($"api/grupo/asignar/{GrupoClienteDTO.Grupo.ID}", GrupoClienteDTO.Cliente);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Éxito", $"Cliente asignado a {GrupoClienteDTO.Grupo.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
 }
 

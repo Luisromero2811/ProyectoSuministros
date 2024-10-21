@@ -22,6 +22,11 @@ namespace ProyectoSuministros.Shared.Modelos
 
 		[NotMapped, EpplusIgnore]
 		public Destinos? Destinos { get; set; } = null!;
-	}
+
+        public int? IDGrupo { get; set; }
+
+        [NotMapped, EpplusIgnore]
+        public Grupo? Grupo { get; set; } = null!;
+    }
 }
 

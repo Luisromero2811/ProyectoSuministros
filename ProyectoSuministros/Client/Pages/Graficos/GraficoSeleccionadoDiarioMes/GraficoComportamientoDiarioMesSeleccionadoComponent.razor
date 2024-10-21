@@ -1,0 +1,97 @@
+﻿@page "/comportamientoDiario"
+@inject IJSRuntime Js
+@inject IRepositorio Repositorio
+@implements IDisposable
+@inject SweetAlertService Swal
+
+<h3>Comportamiento Diario de Ventas (Clientes - SIMSA)</h3>
+
+<div class="col-12 row d-flex">
+    <div class="col-4">
+        <label>Mes:</label>
+        <select id="month" @bind="selectedMonth" class="form-control">
+            @foreach (var month in Enumerable.Range(1, 12))
+            {
+                <option value="@month">@GetMonthName(month)</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-4">
+        <label>Año:</label>
+        <select id="year" @bind="selectedYear" class="form-control">
+            @foreach (var year in Enumerable.Range(DateTime.Now.Year - 10, 11))
+            {
+                <option value="@year">@year</option>
+            }
+        </select>
+    </div>
+    <div class="col-3 mt-auto">
+        <button class="btn gsum-bg-amarillo" @onclick="GenerateChart">Generar Gráfico</button>
+    </div>
+</div>
+
+<div class="chart-container">
+    <canvas id="myChartComportamientoSeleccionado"></canvas>
+</div>
+
+<style>
+    .chart-container {
+        width: 100%;
+        height: 600px; /* Mantén el alto del gráfico consistente */
+        position: relative;
+    }
+
+    /* Elimina cualquier margin o padding que pueda afectar el canvas */
+    canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+    }
+</style>
+
+@code {
+    private int selectedMonth = DateTime.Now.Month;
+    private int selectedYear = DateTime.Now.Year;
+    private DotNetObjectReference<GraficoComportamientoDiarioMesSeleccionadoComponent> objRef;
+    private List<Comportamiento_Diario> comportamientoDiario = new();
+
+    private async Task GenerateChart()
+    {
+        await Data();
+
+        // Enviamos los datos al JS para que cree el gráfico
+        await Js.InvokeVoidAsync("initializeChartComportamientoDiarioSeleccionado",
+            comportamientoDiario.Select(x => x.Fecha.ToString("dd-MM-yyyy")).ToArray(),
+            comportamientoDiario.Select(x => x.VolumenCliente).ToArray(),
+            comportamientoDiario.Select(x => x.VolumenSimsa).ToArray());
+    }
+
+    private async Task Data()
+    {
+        try
+        {
+            var responseHttp = await Repositorio.Get<List<Comportamiento_Diario>>($"api/compras/ComportamientoDiarioSeleccionado?month={selectedMonth}&year={selectedYear}");
+            if (!responseHttp.Error)
+            {
+                comportamientoDiario = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    private string GetMonthName(int month)
+    {
+        return new DateTime(1, month, 1).ToString("MMMM").ToUpper();
+    }
+
+    private record Comportamiento_Diario(DateTime Fecha, double? VolumenCliente, double? VolumenSimsa);
+}

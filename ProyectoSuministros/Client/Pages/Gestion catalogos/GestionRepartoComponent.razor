@@ -74,14 +74,14 @@
 </div>
 
 <!--Tabla de muestreo de datos-->
-<div class="card mt-2" style="height: 500px; overflow: scroll;">
+<div class="card mt-2" style="height: auto; overflow: scroll;">
     <div class="card-header">
         <b>Gestión de Grupos empresariales</b>
     </div>
     <div class="card-body">
         <div class="col-12 row">
             <div class="col-12">
-                <Tabla Datos="Repartos"> 
+                <Tabla Datos="Repartos">
                     <Cabeceras>
                         <tr>
                             <th>Nombre del Reparto</th>
@@ -122,6 +122,44 @@
     </div>
 </div>
 
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Filtrado de Reparto</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Destino:</label>
+                <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDReparto" On_Change_Method="@ChangeReparto" @bind-Valor="DestinoFiltro.IDReparto"
+                                Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Reparto">
+                    <RenderValue>
+                        @context.NomMS - @context.Estacion
+                    </RenderValue>
+                    <Render>
+                        @context.NomMS - @context.Estacion
+                    </Render>
+                </DropDownFilter>
+            </div>
+        </div>
+        <div class="col-12">
+            <Tabla Datos="RepartoFiltro">
+                <Cabeceras>
+                    <tr>
+                        <th>Nombre del Clúster</th>
+                    </tr>
+                </Cabeceras>
+                <Columnas Context="item">
+                    <tr>
+                        <td>
+                            @item.Nombre
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
+
 @code {
     public Reparto Reparto { get; set; } = new Reparto();
     public List<Reparto> Repartos { get; set; } = new List<Reparto>();
@@ -132,6 +170,12 @@
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
 
+    //Filtrado de destino para saber su Cluster
+    public Destinos DestinoFiltro { get; set; } = new Destinos();
+    public List<Destinos> DestinosFiltro { get; set; } = new List<Destinos>();
+    public List<Reparto> RepartoFiltro { get; set; } = new List<Reparto>();
+    //Termina propiedades para filtrado de destino para saber su Cluster
+
     bool isEdit = false;
 
     protected override async Task OnInitializedAsync()
@@ -139,6 +183,7 @@
         await GetReparto();
         await GetRepartos();
         await GetIlistDestinos();
+        await GetDestinosList();
     }
 
     private async Task SaveReparto()
@@ -315,6 +360,57 @@
         {
             await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
         }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinosFiltro = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ChangeReparto()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["IDReparto"] = DestinoFiltro.IDReparto.ToString() ?? string.Empty;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Reparto>>($"api/destinos/listaReparto?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                RepartoFiltro = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Reparto()
+    {
+
     }
 
 }

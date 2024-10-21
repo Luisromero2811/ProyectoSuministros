@@ -6,6 +6,9 @@ using ProyectoSuministros.Client.Repositorios;
 using Radzen;
 using ProyectoSuministros.Client.Helpers.Validations;
 using ProyectoSuministros.Client.Helpers;
+using ProyectoSuministros.Client.Auth;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Globalization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -13,10 +16,12 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton(sp => new HttpClient
     {
-    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress),
+    Timeout = TimeSpan.FromMinutes(15),
     });
 ConfigureServices(builder.Services);
 
+builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 await builder.Build().RunAsync();
 void ConfigureServices(IServiceCollection services)
@@ -24,6 +29,18 @@ void ConfigureServices(IServiceCollection services)
     services.AddSweetAlert2();
     services.AddScoped<IRepositorio, Repositorio>();
 
+    services.AddAuthorizationCore();
+
+    services.AddScoped<ProveedorAutenticacionJWT>();
+
+    services.AddScoped<AuthenticationStateProvider, ProveedorAutenticacionJWT>(proveedor =>
+    proveedor.GetRequiredService<ProveedorAutenticacionJWT>());
+
+    services.AddScoped<ILoginService, ProveedorAutenticacionJWT>(proveedor =>
+    proveedor.GetRequiredService<ProveedorAutenticacionJWT>());
+
+    services.AddScoped<RenovadorToken>();
+    services.AddSingleton(new CultureInfo("es-MX"));
     services.AddScoped<GestionDestinoValidation>();
     services.AddScoped<GestionClienteValidation>();
     services.AddScoped<GestionClusterValidation>();
@@ -34,6 +51,8 @@ void ConfigureServices(IServiceCollection services)
     services.AddScoped<GestionRepartoValidation>();
     services.AddScoped<GestionTADValidation>();
     services.AddScoped<GestionZonaValidation>();
+    services.AddScoped<GroupClientValidation>();
+    services.AddScoped<UsuarioInfoValidation>();
 
     services.AddScoped<ClientDestinationValidation>();
     services.AddScoped<ClusterDestinationValidation>();

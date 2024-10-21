@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProyectoSuministros.Shared.DTOs;
 using ProyectoSuministros.Shared.Modelos;
 
@@ -112,6 +113,31 @@ namespace ProyectoSuministros.Server.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpPost("asignar/{cod:int}")]
+        public async Task<ActionResult> RelationGrupo([FromBody] CodDenDTO codden, [FromRoute] int cod)
+        {
+            try
+            {
+                var cliente = await context.Cliente.FirstOrDefaultAsync(x => x.ID == codden.Cod);
+
+                if (cliente == null)
+                {
+                    return NotFound();
+                }
+
+                cliente.IDGrupo = cod;
+                context.Update(cliente);
+                await context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
     }
 }
 

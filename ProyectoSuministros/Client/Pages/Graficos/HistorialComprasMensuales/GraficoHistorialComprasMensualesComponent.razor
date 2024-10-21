@@ -1,0 +1,55 @@
+﻿@page "/historialCompras"
+@inject IJSRuntime Js
+@inject IRepositorio repositorio
+@implements IDisposable
+@inject SweetAlertService Swal
+
+<h3>Historial de compras CLIENTES</h3>
+
+<canvas id="myChartHistorial" style="width:100%; height: 600px;"></canvas>
+
+@code {
+    private DotNetObjectReference<GraficoHistorialComprasMensualesComponent> objRef;
+    private List<HistorialCompras> compras_ = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await Data();
+
+            await Js.InvokeVoidAsync("initializeChartHistorialCompras", compras_.Select(x => x.Mes).Distinct(), compras_);
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    private async Task Data()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<HistorialCompras>>($"api/compras/HistorialCompras");
+            if (!responseHttp.Error)
+            {
+                Console.WriteLine("Inicio:", responseHttp);
+                compras_ = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private record HistorialCompras(string Producto, string Mes, double? Volumen);
+}
+

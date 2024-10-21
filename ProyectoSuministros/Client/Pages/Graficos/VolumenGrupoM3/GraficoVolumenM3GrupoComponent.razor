@@ -1,0 +1,93 @@
+﻿@page "/volumenGrupo"
+@inject IJSRuntime Js
+@inject IRepositorio Repositorio
+@implements IDisposable
+@inject SweetAlertService Swal
+
+<h3>Volumen Facturado por Grupo Empresarial</h3>
+
+<div class="col-12 row d-flex">
+    <div class="col-4">
+        <label>Mes:</label>
+        <select id="month" @bind="selectedMonth" class="form-control">
+            @foreach (var month in Enumerable.Range(1, 12))
+            {
+                <option value="@month">@GetMonthName(month)</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-4">
+        <label>Año:</label>
+        <select id="year" @bind="selectedYear" class="form-control">
+            @foreach (var year in Enumerable.Range(2023, 2))
+            {
+                <option value="@year">@year</option>
+            }
+        </select>
+    </div>
+    <div class="col-3 mt-auto">
+        <button class="btn gsum-bg-amarillo" @onclick="GenerateChart">Generar Gráfico</button>
+    </div>
+</div>
+
+<div class="chart-container">
+    <canvas id="myChartVolumenM3"></canvas>
+</div>
+
+<style>
+    .chart-container {
+        width: 100%;
+        height: 600px; /* Mantén el alto del gráfico consistente */
+        position: relative;
+    }
+
+    /* Elimina cualquier margin o padding que pueda afectar el canvas */
+    canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+    }
+</style>
+
+@code {
+    private int selectedMonth = DateTime.Now.Month;
+    private int selectedYear = DateTime.Now.Year;
+    private DotNetObjectReference<GraficoVolumenM3GrupoComponent> objRef;
+    private List<ComprasVolumenGrupo> compras_ = new();
+
+    private async Task GenerateChart()
+    {
+        await Data();
+        await Js.InvokeVoidAsync("initializeChartVolumenGrupo", compras_.Select(x => x.Grupo), compras_.Select(x => x.Volumen));
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    private async Task Data()
+    {
+        try
+        {
+            var responseHttp = await Repositorio.Get<List<ComprasVolumenGrupo>>($"api/compras/volumenFacturadoGrupo?month={selectedMonth}&year={selectedYear}");
+            if (!responseHttp.Error)
+            {
+                Console.WriteLine("Inicio:", responseHttp);
+                compras_ = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private string GetMonthName(int month)
+    {
+        return new DateTime(1, month, 1).ToString("MMMM").ToUpper();
+    }
+
+    private record ComprasVolumenGrupo(string Grupo, double? Volumen);
+}

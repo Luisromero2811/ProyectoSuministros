@@ -73,7 +73,7 @@
     </div>
 </div>
 <!--Tabla de muestreo de datos-->
-<div class="card mt-2" style="height: 500px; overflow: scroll;">
+<div class="card mt-2" style="height: auto; overflow: scroll;">
     <div class="card-header">
         <b>Gestión de Zonas</b>
     </div>
@@ -120,7 +120,43 @@
         </div>
     </div>
 </div>
-
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Filtrado de Zonas</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Destino:</label>
+                <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDZona" On_Change_Method="@ChangeZona" @bind-Valor="DestinoFiltro.IDZona"
+                                Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Zona">
+                    <RenderValue>
+                        @context.NomMS - @context.Estacion
+                    </RenderValue>
+                    <Render>
+                        @context.NomMS - @context.Estacion
+                    </Render>
+                </DropDownFilter>
+            </div>
+        </div>
+        <div class="col-12">
+            <Tabla Datos="ZonaFiltro">
+                <Cabeceras>
+                    <tr>
+                        <th>Nombre de la Zona</th>
+                    </tr>
+                </Cabeceras>
+                <Columnas Context="item">
+                    <tr>
+                        <td>
+                            @item.Nombre
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
 
 @code {
     public Zona Zona { get; set; } = new Zona();
@@ -132,6 +168,12 @@
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
 
+    //Filtrado de destino para saber su Cluster
+    public Destinos DestinoFiltro { get; set; } = new Destinos();
+    public List<Destinos> DestinosFiltro { get; set; } = new List<Destinos>();
+    public List<Zona> ZonaFiltro { get; set; } = new List<Zona>();
+    //Termina propiedades para filtrado de destino para saber su Cluster
+
     bool isEdit = false;
 
     protected override async Task OnInitializedAsync()
@@ -139,6 +181,7 @@
         await GetZone();
         await GetZones();
         await GetIlistDestinos();
+        await GetDestinosList();
     }
 
     private async Task SaveZona()
@@ -310,6 +353,64 @@
             {
                 await Swal.FireAsync("Exito", $"Destino asignado a {ZonaDestinoDTO.zona.Nombre}", SweetAlertIcon.Success);
             }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinosFiltro = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ChangeZona()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["IDZona"] = DestinoFiltro.IDZona.ToString() ?? string.Empty;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Zona>>($"api/destinos/listaZona?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                ZonaFiltro = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Zona()
+    {
+        try
+        {
+
         }
         catch (Exception e)
         {

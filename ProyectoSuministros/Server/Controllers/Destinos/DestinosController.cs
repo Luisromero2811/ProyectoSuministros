@@ -65,7 +65,7 @@ namespace ProyectoSuministros.Server.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message); 
+                return BadRequest(e.Message);
             }
         }
 
@@ -77,7 +77,7 @@ namespace ProyectoSuministros.Server.Controllers
             {
 
                 var destinos = await context.Destinos
-                    .Select(x => new CodDenDTO { Cod = x.IDGob, Den = x.Estacion! })
+                    .Select(x => new CodDenDTO { Cod = x.IDGob, Den = x.NomMS! })
                     .OrderBy(x => x.Den)
                     .ToListAsync();
                 return Ok(destinos);
@@ -101,6 +101,15 @@ namespace ProyectoSuministros.Server.Controllers
                 if (!string.IsNullOrEmpty(destino.nombreDestino))
                     destinos = destinos.Where(x => x.Estacion != null && !string.IsNullOrEmpty(x.Estacion) && x.Estacion.ToLower().Contains(destino.nombreDestino.ToLower()));
 
+                if (!string.IsNullOrEmpty(destino.numeroMGC))
+                    destinos = destinos.Where(x => x.NumMGC != null && !string.IsNullOrEmpty(x.NumMGC) && x.NumMGC.ToLower().Contains(destino.numeroMGC.ToLower()));
+
+                if (!string.IsNullOrEmpty(destino.NomMexS))
+                    destinos = destinos.Where(x => x.NomMS != null && !string.IsNullOrEmpty(x.NomMS) && x.NomMS.ToLower().Contains(destino.NomMexS.ToLower()));
+
+                if (!string.IsNullOrEmpty(destino.PermisoCRE))
+                    destinos = destinos.Where(x => x.CRE != null && !string.IsNullOrEmpty(x.CRE) && x.CRE.ToLower().Contains(destino.PermisoCRE.ToLower()));
+
                 return Ok(destinos);
 
             }
@@ -109,6 +118,200 @@ namespace ProyectoSuministros.Server.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpGet("listaCluster")]
+        public async Task<ActionResult> GetListDestinoCluster([FromQuery] ParametrosBusquedaCatalogo destino)
+        {
+            try
+            {
+                var destinos = context.Cluster
+                    .Where(x => x.Activo == true)
+                    .OrderBy(x => x.Nombre)
+                    .AsQueryable();
+
+                if (destino.IDDestino != 0)
+                {
+                    destinos = destinos.Where(x => x.Destinos.Any(y => y.ID == destino.IDDestino));
+                }
+                else if (destino.IDCluster != 0)
+                {
+                    destinos = destinos.Where(x => x.ID == destino.IDCluster);
+                }
+                else
+                {
+                    return BadRequest("El destino no cuenta con un Cluster asignado");
+                }
+
+                return Ok(destinos);
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        //listaEjecutivo
+        [HttpGet("listaEjecutivo")]
+        public async Task<ActionResult> GetListEjecutivoCluster([FromQuery] ParametrosBusquedaCatalogo ejecutivo)
+        {
+            try
+            {
+                var ejecutivos = context.Ejecutivo
+                    .Where(x => x.Activo == true)
+                    .OrderBy(x => x.Nombre)
+                    .AsQueryable();
+
+                if (ejecutivo.IDDestino != 0)
+                {
+                    ejecutivos = ejecutivos.Where(x => x.Destinos.Any(y => y.ID == ejecutivo.IDDestino));
+                }
+                else if (ejecutivo.IDEjecutivo != 0)
+                {
+                    ejecutivos = ejecutivos.Where(x => x.ID == ejecutivo.IDEjecutivo);
+                }
+                else
+                {
+                    return BadRequest("El destino no cuenta con un Ejecutivo asignado");
+                }
+
+                return Ok(ejecutivos);
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("listaFranquicia")]
+        public async Task<ActionResult> GetListFranquiciaCluster([FromQuery] ParametrosBusquedaCatalogo franquicia)
+        {
+            try
+            {
+                var franquicias = context.Franquicia
+                    .Where(x => x.Activo == true)
+                    .OrderBy(x => x.Nombre)
+                    .AsQueryable();
+
+                if (franquicia.IDDestino != 0)
+                {
+                    franquicias = franquicias.Where(x => x.Destinos.Any(y => y.ID == franquicia.IDDestino));
+                }
+                else if (franquicia.IDFranquicia != 0)
+                {
+                    franquicias = franquicias.Where(x => x.ID == franquicia.IDFranquicia);
+                }
+                else
+                {
+                    return BadRequest("El destino no cuenta con una Franquicia asignada");
+                }
+
+                return Ok(franquicias);
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("listaReparto")]
+        public async Task<ActionResult> GetListRepartoCluster([FromQuery] ParametrosBusquedaCatalogo reparto)
+        {
+            try
+            {
+                var repartos = context.Reparto
+                    .Where(x => x.Activo == true)
+                    .OrderBy(x => x.Nombre)
+                    .AsQueryable();
+
+                if (reparto.IDDestino != 0)
+                {
+                    repartos = repartos.Where(x => x.Destinos.Any(y => y.ID == reparto.IDDestino));
+                }
+                else if (reparto.IDReparto != 0)
+                {
+                    repartos = repartos.Where(x => x.ID == reparto.IDReparto);
+                }
+                else
+                {
+                    return BadRequest("El destino no cuenta con un Reparto asignado");
+                }
+
+                return Ok(repartos);
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("listaTAD")]
+        public async Task<ActionResult> GetListTADCluster([FromQuery] ParametrosBusquedaCatalogo tad)
+        {
+            try
+            {
+                var tADs = context.TAD
+                    .Where(x => x.Activo == true)
+                    .OrderBy(x => x.Nombre)
+                    .AsQueryable();
+
+                if (tad.IDDestino != 0)
+                {
+                    tADs = tADs.Where(x => x.Destinos.Any(y => y.ID == tad.IDDestino));
+                }
+                else if (tad.IDTad != 0)
+                {
+                    tADs = tADs.Where(x => x.IDGob == tad.IDTad);
+                }
+                else
+                {
+                    return BadRequest("El destino no cuenta con una TAD asignada");
+                }
+
+                return Ok(tADs);
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("listaZona")]
+        public async Task<ActionResult> GetListZonaCluster([FromQuery] ParametrosBusquedaCatalogo tad)
+        {
+            try
+            {
+                var tADs = context.Zona
+                    .Where(x => x.Activo == true)
+                    .OrderBy(x => x.Nombre)
+                    .AsQueryable();
+
+                if (tad.IDDestino != 0)
+                {
+                    tADs = tADs.Where(x => x.Destinos.Any(y => y.ID == tad.IDDestino));
+                }
+                else if (tad.IDZona != 0)
+                {
+                    tADs = tADs.Where(x => x.ID == tad.IDZona);
+                }
+                else
+                {
+                    return BadRequest("El destino no cuenta con una Zona asignada");
+                }
+
+                return Ok(tADs);
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
 
         [HttpPut("{ID:int}")]
         public async Task<ActionResult> ChangeStatus([FromRoute] int Id, [FromBody] bool status)

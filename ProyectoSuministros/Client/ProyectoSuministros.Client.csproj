@@ -53,6 +53,17 @@
     <None Remove="Pages\Gestion catalogos\" />
     <None Remove="Pages\Graficos\" />
     <None Remove="Helpers\Validations\" />
+    <None Remove="Pages\Graficos\GraficoDiario\" />
+    <None Remove="Pages\Graficos\ComprasMensualesCliente\" />
+    <None Remove="Pages\Graficos\MensualesSIMSACliente\" />
+    <None Remove="Pages\Graficos\HistorialComprasMensuales\" />
+    <None Remove="Pages\Graficos\VolumenDestinoM3\" />
+    <None Remove="Pages\Graficos\VolumenGrupoM3\" />
+    <None Remove="Pages\Graficos\ComprasMes2024\" />
+    <None Remove="Pages\Graficos\SIMSADestinoVolumenM3\" />
+    <None Remove="Pages\Graficos\GraficoSeleccionadoDiarioMes\" />
+    <None Remove="Pages\Auth\" />
+    <None Remove="Pages\Usuarios\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Auth\" />
@@ -69,6 +80,17 @@
     <Folder Include="Pages\Gestion catalogos\" />
     <Folder Include="Pages\Graficos\" />
     <Folder Include="Helpers\Validations\" />
+    <Folder Include="Pages\Graficos\GraficoDiario\" />
+    <Folder Include="Pages\Graficos\ComprasMensualesCliente\" />
+    <Folder Include="Pages\Graficos\MensualesSIMSACliente\" />
+    <Folder Include="Pages\Graficos\HistorialComprasMensuales\" />
+    <Folder Include="Pages\Graficos\VolumenDestinoM3\" />
+    <Folder Include="Pages\Graficos\VolumenGrupoM3\" />
+    <Folder Include="Pages\Graficos\ComprasMes2024\" />
+    <Folder Include="Pages\Graficos\SIMSADestinoVolumenM3\" />
+    <Folder Include="Pages\Graficos\GraficoSeleccionadoDiarioMes\" />
+    <Folder Include="Pages\Auth\" />
+    <Folder Include="Pages\Usuarios\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="wwwroot\js\" />

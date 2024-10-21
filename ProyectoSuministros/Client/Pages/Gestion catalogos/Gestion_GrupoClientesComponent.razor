@@ -17,13 +17,13 @@
                         <label>Nombre del grupo empresarial:</label>
                         <InputText @bind-Value="Grupo.Nombre" class="form-control" MaxLenght="40" />
                     </div>
-                    <div class="col-3">
+                    @*<div class="col-3">
                         <label>Nombre del Cliente:</label>
                         <RadzenDropDown @bind-Value="Grupo.CodCte" TValue="int?" Data="Clientes" ValueProperty="ID" TextProperty="Nombre"
                                         AllowVirtualization="true" AllowFiltering="true"
                                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
                         </RadzenDropDown>
-                    </div>
+                    </div>*@
                     <div class="col-3 d-flex mt-auto">
                         @if (!isEdit)
                         {

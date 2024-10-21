@@ -56,6 +56,9 @@
     <None Remove="Controllers\Zona\" />
     <None Remove="Controllers\Graficos\" />
     <None Remove="Controllers\Graficos\Compras\" />
+    <None Remove="Controllers\Auth\" />
+    <None Remove="Controllers\Usuario\" />
+    <None Remove="Identity\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Helpers\" />
@@ -72,5 +75,8 @@
     <Folder Include="Controllers\Zona\" />
     <Folder Include="Controllers\Graficos\" />
     <Folder Include="Controllers\Graficos\Compras\" />
+    <Folder Include="Controllers\Auth\" />
+    <Folder Include="Controllers\Usuario\" />
+    <Folder Include="Identity\" />
   </ItemGroup>
 </Project>

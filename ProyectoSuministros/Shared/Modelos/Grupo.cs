@@ -15,8 +15,6 @@ namespace ProyectoSuministros.Shared.Modelos
 
 		public bool? Activo { get; set; } = true;
 
-        public int? CodCte { get; set; } = 0;
-
         [NotMapped, EpplusIgnore]
         public Cliente? Cliente { get; set; } = null!;
 
