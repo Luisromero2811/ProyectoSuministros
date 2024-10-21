@@ -1,0 +1,220 @@
+﻿@inject IJSRuntime js
+@inject IRepositorio repositorio
+@inject SweetAlertService swal
+
+<div id="mySidepanel" class="sidepanel">
+    <a href="javascript:void(0)" class="closebtn" @onclick="CloseMenuLateral">×</a>
+    @foreach (var level_0 in Menus)
+    {
+        <AuthorizeView Roles="@level_0.roles" Context="level_0_context">
+            <Authorized>
+                @if (!level_0.isMenu)
+                {
+                    <NavLink href="@level_0.path" Match="NavLinkMatch.All" ActiveClass="sidepanel-item-active">
+                        <div class="sidepanel-item">
+                            <i class="fa fa-solid fa-@level_0.icon" aria-hidden="true"></i>
+                            @level_0.name
+                        </div>
+                    </NavLink>
+                }
+                else
+                {
+                    <DropDownMenu Show="@level_0.showDropDown">
+                        <Button>
+                            <DropDownMenuButton @bind-ShowDropDown="@level_0.showDropDown">
+                                <ButtonTemplate>
+                                    <i class="fa fa-solid fa-@level_0.icon" aria-hidden="true"></i>
+                                    @level_0.name
+                                </ButtonTemplate>
+                            </DropDownMenuButton>
+                        </Button>
+                        <Items>
+                            @foreach (var level_1 in level_0.Menus)
+                            {
+
+                                @if (!level_1.isMenu)
+                                {
+                                    <DropDownMenuItem Path="@level_1.path" Use_Roles="@true" Roles="@level_1.roles">
+                                        <ItemTemplate>
+                                            <i class="fa fa-solid fa-@level_1.icon" aria-hidden="true"></i>
+                                            @level_1.name
+                                        </ItemTemplate>
+                                    </DropDownMenuItem>
+                                }
+                                else
+                                {
+                                    <DropDownMenu Show="@level_1.showDropDown">
+                                        <Button>
+                                            <DropDownMenuButton @bind-ShowDropDown="level_1.showDropDown">
+                                                <ButtonTemplate>
+                                                    <i class="fa fa-solid fa-@level_1.icon" aria-hidden="true"></i>
+                                                    @level_1.name
+                                                </ButtonTemplate>
+                                            </DropDownMenuButton>
+                                        </Button>
+                                        <Items>
+                                            @foreach (var level_2 in level_1.Menus)
+                                            {
+                                                <DropDownMenuItem Path="@level_2.path" Use_Roles="@true" Roles="@level_2.roles">
+                                                    <ItemTemplate>
+                                                        <i class="fa fa-solid fa-@level_2.icon" aria-hidden="true"></i>
+                                                        @level_2.name
+                                                    </ItemTemplate>
+                                                </DropDownMenuItem>
+
+                                            }
+                                        </Items>
+                                    </DropDownMenu>
+                                }
+
+                            }
+                        </Items>
+                    </DropDownMenu>
+                }
+            </Authorized>
+        </AuthorizeView>
+    }
+</div>
+
+
+@code {
+    List<Menu> Menus { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        //Usuario
+        Menus.Add(new Menu() { name = "Usuarios", icon = "user", path = "/usuarios", roles = "Admin" });
+
+        //Facturas
+        Menus.Add(new Menu() { name = "Facturas", icon = "file-invoice-dollar", path = "/facturas", roles = "Admin" });
+
+        //Configuración
+        Menus.Add(new Menu()
+        {
+            isMenu = true,
+            name = "Configuración",
+            icon = "gear",
+            roles = "Admin",
+            Menus = new()
+{
+                    new()
+                    {
+                        name = "Gestión de Catálogos",
+                        icon = "list-check",
+                        roles = "Admin",
+                        path = "menu/gestion"
+                    }
+                }
+        });
+
+        //Gráficos
+        Menus.Add(new Menu()
+        {
+            isMenu = true,
+            name = "Gráficos",
+            icon = "chart-bar",
+            roles = "Admin, Lectura Graficas",
+            Menus = new()
+{
+                        new()
+                        {
+                            isMenu = true,
+                            name = "Gráficas de Compras",
+                            roles = "Admin, Lectura Graficas",
+                            icon = "cash-register",
+                            Menus = new()
+{
+                                               new()
+                {
+                    name = "Volumen por destino CLIENTE en M3 mensual",
+                    icon = "chart-simple",
+                    roles = "Admin, Lectura Graficas",
+                    path = "volumenDestino"
+                },
+                                new()
+                                {
+                                    name = "Volumen por destinos SIMSA en M3 mensual",
+                                    icon = "chart-simple",
+                                    roles = "Admin, Lectura Graficas",
+                                    path = "volumenDestinoSIMSA"
+                                },
+
+                new()
+                {
+                    name = "Volumen en M3 por Grupo (Mensual)",
+                    icon = "chart-simple",
+                    roles = "Admin, Lectura Graficas",
+                    path = "volumenGrupo"
+                },
+                                new()
+                {
+                    name = "Comportamiento diario de compras",
+                    roles = "Admin, Lectura Graficas",
+                    icon = "chart-line",
+                    path = ""
+                },
+                new()
+                {
+                    name = "Historial de compras mensuales Clientes",
+                    icon = "chart-simple",
+                    roles = "Admin, Lectura Graficas",
+                    path = "historialCompras"
+                },
+                new()
+                {
+                    name = "Compras mensuales clientes y SIMSA 2024",
+                    icon = "chart-column",
+                    roles = "Admin, Lectura Graficas",
+                    path = "comprasMensuales"
+                },
+                 new()
+                {
+                    name = "Compras mensuales Clientes 2023-2024",
+                    icon = "chart-column",
+                    roles = "Admin, Lectura Graficas",
+                    path = "comprasMensualesClientes"
+                },
+                    new()
+                {
+                    name = "Compras mensuales dividido 2024",
+                    icon = "chart-simple",
+                    roles = "Admin, Lectura Graficas",
+                    path = "comprasMensualesAñoActual"
+                },
+                      new()
+                {
+                    name = "Comportamiento diario por mes seleccionado",
+                    icon = "chart-simple",
+                    roles = "Admin, Lectura Graficas",
+                    path = "comportamientoDiario"
+                },
+                            }
+                        },
+
+            }
+        });
+    }
+
+    private async void CloseMenuLateral()
+    {
+        await js.InvokeVoidAsync("CloseMenu");
+    }
+
+    public class Menu
+    {
+        public string name { get; set; } = string.Empty;
+        public string path { get; set; } = string.Empty;
+        public string icon { get; set; } = string.Empty;
+        public string roles { get; set; } = string.Empty;
+        public string context_item { get; set; } = string.Empty;
+        public bool isMenu { get; set; } = false;
+        public bool showDropDown { get; set; } = false;
+        public List<Menu> Menus { get; set; } = new();
+
+        public void ToggleShow()
+        {
+            showDropDown = !showDropDown;
+        }
+    }
+}
+

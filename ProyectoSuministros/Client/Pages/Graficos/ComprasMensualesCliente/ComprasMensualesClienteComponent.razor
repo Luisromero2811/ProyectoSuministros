@@ -1,0 +1,55 @@
+﻿@page "/comprasMensualesClientes"
+@inject IJSRuntime Js
+@inject IRepositorio Repositorio
+@implements IDisposable
+@inject SweetAlertService Swal
+
+<h3>Compras mensuales Clientes 2023 - 2024</h3>
+
+<canvas id="myChartComprasMensuales" style="width:100%; height: 600px;"></canvas>
+
+@code {
+    private DotNetObjectReference<ComprasMensualesClienteComponent> objRef;
+    private List<Compras_GraficaClientes> compras_ = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await Data();
+
+            await Js.InvokeVoidAsync("initializeChartComprasMensualesCliente", compras_.Select(x => x.Mes), compras_.Select(x => x.Volumen));
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    private async Task Data()
+    {
+        try
+        {
+            var responseHttp = await Repositorio.Get<List<Compras_GraficaClientes>>("api/compras/ComprasMensualesClientes2023-2024");
+            if (!responseHttp.Error)
+            {
+                Console.WriteLine("Inicio", responseHttp);
+                compras_ = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private record Compras_GraficaClientes(string Mes, double? Volumen);
+}
+

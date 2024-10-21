@@ -1,0 +1,406 @@
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject GestionClusterValidation gestionCluster
+@inject ClusterDestinationValidation gestionRelacion
+
+<div class="card">
+    <div class="card-header">
+        <b>Catalogo de Cluster</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12">
+            <EditForm Model="Cluster" class="form col-12" OnValidSubmit="@SaveGrupo" Context="validacion">
+                <FluentValidationValidator Validator="gestionCluster" />
+                <ValidationSummary />
+                <div class="col-12 row">
+                    <div class="col-3">
+                        <label>Nombre del cluster:</label>
+                        <InputText @bind-Value="Cluster.Nombre" class="form-control" MaxLenght="40" />
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        @if (!isEdit)
+                        {
+                            <button class="col-12 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-plus"></i> Registrar Cluster
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="col mx-2 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-check"></i>
+                            </button>
+                            <button class="col mx-2 btn gsum-bg-amarillo" @onclick="@cancelEdit" type="button">
+                                <i class="fa fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+            <EditForm Model="@ClusterDestinoDTO" class="col-12" OnValidSubmit="@RelationCluster" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion" />
+                <ValidationSummary />
+                <h6>Relación Cluster-Destino</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>Cluster:</label>
+                        <RadzenDropDown @bind-Value="ClusterDestinoDTO.cluster" Data="Clusters" TValue="Cluster" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as Cluster)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as Cluster)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Destino:</label>
+                        <RadzenDropDown @bind-Value="ClusterDestinoDTO.destino" Data="DestinoCluster" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Destino-Cluster
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+<!--Tabla de muestreo de datos-->
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Gestión de Cluster</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-12">
+                <Tabla Datos="Clusters">
+                    <Cabeceras>
+                        <tr>
+                            <th>Nombre del Cluster</th>
+                            <th>Estado</th>
+                            <th>Editar</th>
+                        </tr>
+                    </Cabeceras>
+                    <Filtros>
+                        <tr class="fila">
+                            <td>
+                                <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombreCluster" />
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </Filtros>
+                    <Columnas Context="item">
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <!--Estado-->
+                            <td>
+                                <div class="form-check form-switch mx-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                           @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                </div>
+                            </td>
+                            <!--Editar-->
+                            <td>
+                                <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetCluster(item))">
+                                    <i class="fa fa-solid fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </Columnas>
+                </Tabla>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Filtrado de Clúster</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Destino:</label>
+                <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDCluster" On_Change_Method="@ChangeCluster" @bind-Valor="DestinoFiltro.IDCluster"
+                                Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Cluster">
+                    <RenderValue>
+                        @context.NomMS - @context.Estacion
+                    </RenderValue>
+                    <Render>
+                        @context.NomMS - @context.Estacion
+                    </Render>
+                </DropDownFilter>
+            </div>
+        </div>
+        <div class="col-12">
+            <Tabla Datos="ClusterFiltro">
+                <Cabeceras>
+                    <tr>
+                        <th>Nombre del Clúster</th>
+                    </tr>
+                </Cabeceras>
+                <Columnas Context="item">
+                    <tr>
+                        <td>
+                            @item.Nombre
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
+@code {
+    public Cluster Cluster { get; set; } = new Cluster();
+    public List<Cluster> Clusters { get; set; } = new List<Cluster>();
+    public List<Destinos> Destinos { get; set; } = new List<Destinos>();
+
+    //Filtrado de destino para saber su Cluster
+    public Destinos DestinoFiltro { get; set; } = new Destinos();
+    public List<Destinos> DestinosFiltro { get; set; } = new List<Destinos>();
+    public List<Cluster> ClusterFiltro { get; set; } = new List<Cluster>();
+    //Termina propiedades para filtrado de destino para saber su Cluster
+
+    public IEnumerable<CodDenDTO> DestinoCluster { get; set; } = new List<CodDenDTO>();
+
+    public ClusterDestinoDTO ClusterDestinoDTO { get; set; } = new ClusterDestinoDTO();
+    Dictionary<string, string> query = new Dictionary<string, string>();
+    ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+
+    bool isEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetClusters();
+        await GetDestinos();
+        await GetDestinosList();
+    }
+
+    //Registro de nuevos cluster
+    private async Task SaveGrupo()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Post<Cluster>($"api/cluster/save", Cluster);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Éxito", $"Cluster {Cluster.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
+                await GetClusters();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    //Obtención de destinos
+    private async Task GetDestinos()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<IList<CodDenDTO>>($"api/destinos/listados");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinoCluster = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadData(ChangeEventArgs args)
+    {
+        busquedaCatalogo.nombreCluster = args.Value?.ToString() ?? string.Empty;
+        await GetClusters();
+    }
+
+    //Obtención de cluster
+    private async Task GetClusters()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["nombreCluster"] = busquedaCatalogo.nombreCluster;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Cluster>>($"api/cluster/list?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Clusters = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    //Cancelar la edición
+    private async void cancelEdit()
+    {
+        isEdit = false;
+        Cluster = new Cluster();
+    }
+
+    //Habilitar o deshabilitar los cluster
+    private async Task HabilitarDeshabilitar(Cluster gt, ChangeEventArgs tp)
+    {
+        try
+        {
+            var status = (bool)tp.Value!;
+            var responseHttp = await repositorio.Put<bool>($"api/cluster/{gt.ID}", status);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (status)
+                {
+                    await Message($"{gt.Nombre} ha sido habilitado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Message($"{gt.Nombre} ha sido deshabilitado", SweetAlertIcon.Info);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Message(string Message, SweetAlertIcon icon)
+    {
+        await Swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
+    }
+
+    //Evento para edición de cluster
+    private void SetCluster(Cluster Clusters)
+    {
+        try
+        {
+            isEdit = true;
+            Cluster = Clusters;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
+
+    //Relación de cluster y destinos
+    public async Task RelationCluster()
+    {
+        try
+        {
+            var response = await repositorio.Post<CodDenDTO>($"api/destinos/asignarCluster/{ClusterDestinoDTO.cluster.ID}", ClusterDestinoDTO.destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino Asignado a {ClusterDestinoDTO.cluster.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinosFiltro = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ChangeCluster()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["IDCluster"] = DestinoFiltro.IDCluster.ToString() ?? string.Empty;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Cluster>>($"api/destinos/listaCluster?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                ClusterFiltro = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Cluster()
+    {
+        try
+        {
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+}
+

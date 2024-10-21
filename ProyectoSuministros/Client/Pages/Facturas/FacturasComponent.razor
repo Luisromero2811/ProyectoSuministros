@@ -1,0 +1,320 @@
+﻿@page "/facturas"
+@inject IRepositorio repositorio
+@inject IJSRuntime js
+@inject SweetAlertService Swal
+@inject ILogger<FacturasComponent> Logger
+
+<div class="d-flex justify-content-center col-12 shadow-sm mt-3">
+    <div class="col-12 card">
+        <div class="card-header">
+            <b>Facturas</b>
+        </div>
+        <div class="col-12 row card-body">
+            <div class="col-12 row mb-3">
+                <div class="col-10">
+                    <div class="form-label">
+                        <label class="form-label">Importar:</label>
+                        <InputFile accept=".xlsx,.xls" class="form-control form-control-sm" OnChange="Subir_Facturas" multiple />
+                        @if (loading_upload)
+                        {
+                            <SpinnerLoading />
+                        }
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <!--Aquí empieza el formulario de edición de las facturas en caso de ser requerido-->
+            @*<div class="col-12">
+                    <EditForm class="form col-12 row" Context="FORM">
+
+                    </EditForm>
+                </div>*@
+        </div>
+    </div>
+</div>
+<!--Tabla de muestreo de datos de facturas-->
+<div class="col-12 ancho-tabla overflow-scroll">
+    <Tabla Datos="facturas">
+        <Cabeceras>
+            <tr>
+                <th class="resizable-column" style="width:60px !important;">Cancelar</th>
+                <th class="resizable-column" style="width:80px !important;">Tipo de documento</th>
+                <th class="resizable-column" style="width:120px !important">Número de remisión</th>
+                <th class="resizable-column" style="width:120px !important">Número de factura</th>
+                <th class="resizable-column" style="width:100px !important">Producto</th>
+                <th class="resizable-column" style="width:80px !important">Fecha de vencimiento</th>
+                <th class="resizable-column" style="width:100px !important">Destino</th>
+                <th class="resizable-column" style="width:80px !important">Vehiculo</th>
+                <th class="resizable-column" style="width:60px !important">Volumen al Natural</th>
+                <th class="resizable-column" style="width:60px !important">Temperatura °C</th>
+                <th class="resizable-column" style="width:60px !important">Volumen Facturado</th>
+                <th class="resizable-column" style="width:60px !important">Unidades</th>
+                <th class="resizable-column" style="width:60px !important">Importe</th>
+                <th class="resizable-column" style="width:60px !important">Moneda</th>
+            </tr>
+        </Cabeceras>
+        <Filtros>
+            <td></td>
+            <td></td>
+            <td>
+                <input type="text" class="form-control form-control-sm" @oninput="@((args)=>FiltrarNRemision(args))" />
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" @oninput="@((args)=>FiltrarNFactura(args))" />
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" @oninput="@((args)=>FiltrarProducto(args))" />
+            </td>
+            <td></td>
+            <td>
+                <input type="text" class="form-control form-control-sm" @oninput="@((args)=>FiltrarDestino(args))" />
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </Filtros>
+        <Columnas Context="factura">
+            <tr>
+                <td>
+                    <button class="btn btn-danger col-12" @onclick="@(()=>cancelFactura(factura))"><i class="fa fa-solid fa-cancel"></i></button>
+                </td>
+                <td>@factura.TipDOC</td>
+                <td>@factura.NRem</td>
+                <td>@factura.NFac</td>
+                <td>@factura.Producto.Nombre</td>
+                <td>@factura.Fch_Ven.ToString("dd/MM/yyyy")</td>
+                <td>@factura.Destino</td>
+                <td>@factura.Vehiculo</td>
+                <td>@factura.VolNat</td>
+                <td>@factura.Temperatura</td>
+                <td>@factura.VolFac</td>
+                <td>@factura.Unidades</td>
+                <td>@factura.Importe</td>
+                <td>@factura.Moneda</td>
+                <!--Poner opcion de activo/inactivo-->
+            </tr>
+        </Columnas>
+    </Tabla>
+    <!--Paginación-->
+    <div class="col-12 row mt-1">
+        <div class="text-muted col-2">
+            <p>Total de registros: @ConteoTotal</p>
+        </div>
+        <div class="col-6 offset-4">
+            <PaginacionComponent PaginaActual="PaginaActual" PaginaSeleccionada="PaginasSeleccionadas" PaginasTotales="PaginasTotales"></PaginacionComponent>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    bool loading_upload = false;
+
+    private List<File> files = new();
+    private List<UploadResult> UploadResults = new();
+    List<Factura> facturas { get; set; } = new List<Factura>();
+    private List<Factura> facturasS = new();
+
+    Factura Factura { get; set; } = new Factura();
+
+    ParametrosBusquedaFacturasDTO busquedaFacturas = new ParametrosBusquedaFacturasDTO();
+    int PaginasTotales;
+    int PaginaActual = 1;
+    int ConteoTotal;
+
+    Dictionary<string, string> queryStringObject = new Dictionary<string, string>();
+
+    private async Task LoadData()
+    {
+        if (queryStringObject is null) { queryStringObject = new Dictionary<string, string>(); }
+        queryStringObject["nremision"] = busquedaFacturas.nremision;
+        queryStringObject["nfactura"] = busquedaFacturas.nfactura;
+        queryStringObject["producto"] = busquedaFacturas.producto;
+        queryStringObject["destino"] = busquedaFacturas.destino;
+        queryStringObject["pagina"] = busquedaFacturas.pagina.ToString();
+        queryStringObject["tamanopagina"] = busquedaFacturas.tamanopagina.ToString();
+
+        var DefaultValues = new List<string>() { "false", "", "0" };
+        var uri = string.Join("&", queryStringObject.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+        .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+        await GetFacturasFiltro(uri);
+    }
+
+    private async Task GetFacturasFiltro(string uri)
+    {
+        try
+        {
+            var response = await repositorio.Get<List<Factura>>($"api/facturas/filtro?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                PaginasTotales = int.Parse(response.HttpResponseMessage.Headers.GetValues("paginas").FirstOrDefault());
+                ConteoTotal = int.Parse(response.HttpResponseMessage.Headers.GetValues("conteo").FirstOrDefault());
+                PaginaActual = int.Parse(response.HttpResponseMessage.Headers.GetValues("pagina").FirstOrDefault());
+                facturas = response.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private class File
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private async Task Subir_Facturas(InputFileChangeEventArgs args)
+    {
+        long MaxAllowedSize = 1024 * 15 * 1024;
+        bool upload = false;
+        int MaxAllowedFiles = 10;
+
+        files = new();
+
+        using var content = new MultipartFormDataContent();
+        foreach (var file in args.GetMultipleFiles(MaxAllowedFiles))
+        {
+            try
+            {
+                files.Add(new() { Name = file.Name });
+                var filecontent = new StreamContent(file.OpenReadStream(MaxAllowedSize));
+                filecontent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+
+                content.Add(content: filecontent, name: "\"files\"", fileName: file.Name);
+                upload = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogInformation("{FileName} no se ha subido. (Err: 1) {Message}", file.Name, ex.Message);
+                UploadResults.Add(new()
+                {
+                    FileName = file.Name,
+                    ErrorCode = 1,
+                    Upload = false
+                });
+            }
+
+            if (upload)
+            {
+                loading_upload = true;
+                try
+                {
+                    var response = await repositorio.PostFile("api/facturas/file", content);
+                    if (response.Error)
+                    {
+                        loading_upload = false;
+                        await Swal.FireAsync("Error", await response.ObtenerMensajeError(), SweetAlertIcon.Error);
+                    }
+                    else
+                    {
+                        loading_upload = false;
+                        await Swal.FireAsync("Éxito", "Las facturas fueron guardadas con éxito", SweetAlertIcon.Success);
+                        //await LoadData();
+                    }
+                }
+                catch (Exception e)
+                {
+                    loading_upload = false;
+                    await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+                }
+            }
+
+        }
+    }
+
+    private async Task cancelFactura(Factura factura)
+    {
+        try
+        {
+            var confirm = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Icon = SweetAlertIcon.Info,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Aceptar",
+                CancelButtonText = "Cancelar",
+                Text = "¿Desea cancelar la factura?"
+            });
+
+            if (!string.IsNullOrEmpty(confirm.Value))
+            {
+                var response = await repositorio.Delete($"api/facturas/cancel/{factura.ID}");
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    await Swal.FireAsync("Éxito", $"La factura {factura.NFac} fue cancelada existosamente", SweetAlertIcon.Success);
+                    await LoadData();
+                }
+            }
+
+            Factura = factura;
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task PaginasSeleccionadas(int pagina)
+    {
+        PaginaActual = pagina;
+        busquedaFacturas.pagina = PaginaActual;
+        await LoadData();
+    }
+
+    private async Task FiltrarNRemision(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            busquedaFacturas.nremision = e.Value.ToString();
+            await LoadData();
+        }
+    }
+
+    private async Task FiltrarNFactura(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            busquedaFacturas.nfactura = e.Value.ToString();
+            await LoadData();
+        }
+    }
+
+    private async Task FiltrarProducto(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            busquedaFacturas.producto = e.Value.ToString();
+            await LoadData();
+        }
+    }
+
+    private async Task FiltrarDestino(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            busquedaFacturas.destino = e.Value.ToString();
+            await LoadData();
+        }
+    }
+
+}
+

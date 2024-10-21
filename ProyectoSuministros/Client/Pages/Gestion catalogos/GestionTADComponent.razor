@@ -1,0 +1,431 @@
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject GestionTADValidation gestionTAD
+@inject TadDestinationValidation gestionRelacion
+
+<div class="card">
+    <div class="card-header">
+        <b>Catalogo de TAD</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12">
+            <EditForm Model="Tad" class="form col-12" OnValidSubmit="@SaveTad" Context="validacion">
+                <FluentValidationValidator Validator="gestionTAD" />
+                <ValidationSummary />
+                <div class="col-12 row">
+                    <div class="col-3">
+                        <label>Nombre de la TAD:</label>
+                        <InputText @bind-Value="Tad.Nombre" class="form-control" MaxLenght="40" />
+                    </div>
+                    <div class="col-3">
+                        <label>ID de la TAD:</label>
+                        <InputNumber @bind-Value="Tad.IDGob" class="form-control" />
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        @if (!isEdit)
+                        {
+                            <button class="col-12 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-plus"></i> Registrar TAD
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="col mx-2 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-check"></i>
+                            </button>
+                            <button class="col mx-2 btn gsum-bg-amarillo" @onclick="@cancelEdit" type="button">
+                                <i class="fa fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+            <EditForm Model="@TadDestinoDTO" class="col-12" OnValidSubmit="@RelationClient" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion" />
+                <ValidationSummary />
+                <h6>Relacion TAD-Destino</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>TAD:</label>
+                        <RadzenDropDown @bind-Value="TadDestinoDTO.tad" Data="TADs" TValue="TAD" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as TAD)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as TAD)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Destino:</label>
+                        <RadzenDropDown @bind-Value="TadDestinoDTO.destino" Data="DestinoTAD" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Destino-Cliente
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+<!--Tabla de muestreo de datos-->
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Gestión de TAD's</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-12">
+                <Tabla Datos="TADs">
+                    <Cabeceras>
+                        <tr>
+                            <th>Nombre de la TAD</th>
+                            <th>ID de la TAD</th>
+                            <th>Estado</th>
+                            <th>Editar</th>
+                        </tr>
+                    </Cabeceras>
+                    <Filtros>
+                        <tr class="fila">
+                            <td>
+                                <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombreTad" />
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </Filtros>
+                    <Columnas Context="item">
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <td>@item.IDGob</td>
+                            <!--Estado-->
+                            <td>
+                                <div class="form-check form-switch mx-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                           @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                                </div>
+                            </td>
+                            <!--Editar-->
+                            <td>
+                                <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetGrupo(item))">
+                                    <i class="fa fa-solid fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </Columnas>
+                </Tabla>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Filtrado de TAD</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Destino:</label>
+                <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDTad" On_Change_Method="@ChangeTAD" @bind-Valor="DestinoFiltro.IDTad"
+                                Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Cluster">
+                    <RenderValue>
+                        @context.NomMS - @context.Estacion
+                    </RenderValue>
+                    <Render>
+                        @context.NomMS - @context.Estacion
+                    </Render>
+                </DropDownFilter>
+            </div>
+        </div>
+        <div class="col-12">
+            <Tabla Datos="TADFiltro">
+                <Cabeceras>
+                    <tr>
+                        <th>Nombre de TAD</th>
+                    </tr>
+                </Cabeceras>
+                <Columnas Context="item">
+                    <tr>
+                        <td>
+                            @item.Nombre
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
+
+@code {
+    public TAD Tad { get; set; } = new TAD();
+    public List<TAD> TADs { get; set; } = new List<TAD>();
+
+    TadDestinoDTO TadDestinoDTO { get; set; } = new TadDestinoDTO();
+
+    public IEnumerable<CodDenDTO> DestinoTAD { get; set; } = new List<CodDenDTO>();
+
+    //Filtrado de destino para saber su Cluster
+    public Destinos DestinoFiltro { get; set; } = new Destinos();
+    public List<Destinos> DestinosFiltro { get; set; } = new List<Destinos>();
+    public List<TAD> TADFiltro { get; set; } = new List<TAD>();
+    //Termina propiedades para filtrado de destino para saber su Cluster
+
+
+    bool isEdit = false;
+
+    Dictionary<string, string> query = new Dictionary<string, string>();
+    ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetTAD();
+        await GetTADs();
+        await GetIlistDestinos();
+        await GetDestinosList();
+    }
+
+    private async Task SaveTad()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Post<TAD>($"api/Tad/save", Tad);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Éxito", $"TAD {Tad.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
+                await GetTAD();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadData(ChangeEventArgs args)
+    {
+        busquedaCatalogo.nombreTad = args.Value?.ToString() ?? string.Empty;
+        await GetTAD();
+    }
+
+    private async Task GetTAD()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["nombreTad"] = busquedaCatalogo.nombreTad;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<TAD>>($"api/Tad/list?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                TADs = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetTADs()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<TAD>>($"api/Tad/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                TADs = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task HabilitarDeshabilitar(TAD gt, ChangeEventArgs tp)
+    {
+        try
+        {
+            var status = (bool)tp.Value!;
+            var responseHttp = await repositorio.Put<bool>($"api/Tad/{gt.ID}", status);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (status)
+                {
+                    await Message($"{gt.Nombre} ha sido habilitado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Message($"{gt.Nombre} ha sido deshabilitado", SweetAlertIcon.Info);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Message(string Message, SweetAlertIcon icon)
+    {
+        await Swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
+    }
+
+    private void SetGrupo(TAD Tads)
+    {
+        try
+        {
+            isEdit = true;
+            Tad = Tads;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
+
+    private async void cancelEdit()
+    {
+        isEdit = false;
+        Tad = new TAD();
+    }
+
+    private async Task RelationClient()
+    {
+        try
+        {
+            var response = await repositorio.Post<CodDenDTO>($"api/destinos/asignarTAD/{TadDestinoDTO.tad.IDGob}", TadDestinoDTO.destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino Asignado a {TadDestinoDTO.tad.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetIlistDestinos()
+    {
+        try
+        {
+            var response = await repositorio.Get<IList<CodDenDTO>>("api/destinos/listados");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                DestinoTAD = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinosFiltro = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ChangeTAD()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["IDTad"] = DestinoFiltro.IDTad.ToString() ?? string.Empty;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<TAD>>($"api/destinos/listaTAD?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                TADFiltro = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Cluster()
+    {
+        try
+        {
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+}
+

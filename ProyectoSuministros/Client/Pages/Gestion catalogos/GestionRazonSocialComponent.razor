@@ -1,0 +1,353 @@
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject GestionRazonSocialValidation gestionRSocial
+
+<div class="card">
+    <div class="card-header">
+        <b>Catalogo de Razon social</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12">
+            <EditForm Model="razonSocial" class="form col-12" OnValidSubmit="@SaveRSocial" Context="validacion">
+                <FluentValidationValidator Validator="gestionRSocial" />
+                <ValidationSummary />
+                <div class="col-12 row">
+                    <div class="col-3">
+                        <label>Nombre de la razon social:</label>
+                        <InputText @bind-Value="razonSocial.Nombre" class="form-control" MaxLenght="128" />
+                    </div>
+                    <!--Clientes-->
+                    <div class="col-3">
+                        @*<label>Clientes:</label>
+                            <RadzenDropDown @bind-Value="razonSocial.IDCte" TValue="int?" Data="clientes" ValueProperty="ID" TextProperty="Nombre"
+                                            AllowVirtualization="true" AllowFiltering="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            </RadzenDropDown>*@
+                        <label>Grupo empresarial:</label>
+                        <RadzenDropDown @bind-Value="razonSocial.IDGrupo" TValue="int?" Data="Grupos" ValueProperty="ID" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        @if (!isEdit)
+                        {
+                            <button class="col-12 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-plus"></i> Registrar Razon Social
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="col mx-2 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-check"></i>
+                            </button>
+                            <button class="col mx-2 btn gsum-bg-amarillo" @onclick="@cancelEdit" type="button">
+                                <i class="fa fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+<!--Tabla de muestreo de datos-->
+<div class="card mt-2" style="height: 500px; overflow: scroll;">
+    <div class="card-header">
+        <b>Gestión de Razon social</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            @*<label>Grupo</label>
+                <DropDownFilter Listado="GrupoActivo" TListado="Grupo" TValue="Int16?" Default_Placeholder="Seleccione un Grupo" FiltrarValor="Obtener_Grupos"
+                                Propiedad_Valor="Cod" On_Change_Method="@GetCliente" @bind-Valor="Cod_Gru">
+                    <RenderValue>
+                        @context.Den
+                    </RenderValue>
+                    <Render>
+                        @context.Den
+                    </Render>
+                </DropDownFilter>*@
+        </div>
+        <div class="col-12">
+            <Tabla Datos="razonSociales">
+                <Cabeceras>
+                    <tr>
+                        <th>Nombre del Razon social</th>
+                        <th>Estado</th>
+                        <th>Editar</th>
+                    </tr>
+                </Cabeceras>
+                <Filtros>
+                    <tr class="fila">
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombrerazonSocial" />
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </Filtros>
+                <Columnas Context="item">
+                    <tr>
+                        <td>@item.Nombre</td>
+                        <!--Estado-->
+                        <td>
+                            <div class="form-check form-switch mx-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                       @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))">
+                            </div>
+                        </td>
+                        <!--Editar-->
+                        <td>
+                            <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetGrupo(item))">
+                                <i class="fa fa-solid fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
+
+<!--Estilos para tabla-->
+<style>
+    .button-circle { /* Green */
+        border: none;
+        color: white;
+        padding: .40rem .60rem;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: .75rem;
+        cursor: pointer;
+        border-radius: 2rem;
+    }
+
+    .fila th {
+        position: -webkit-sticky;
+        position: sticky;
+        text-align: center;
+        top: 0;
+        background-color: #f2f2f2;
+    }
+
+    .fila td {
+        position: -webkit-sticky;
+        position: sticky;
+        text-align: center;
+        top: 28px;
+        background-color: #f2f2f2;
+    }
+
+    .sticky-column {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        background-color: white;
+    }
+
+    .sticky-column-header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        background-color: white;
+    }
+
+    .sticky-column, .sticky-column + th, .sticky-column + td {
+        min-width: 180px;
+    }
+
+    .th-resizable {
+        position: relative;
+        cursor: col-resize;
+    }
+
+        .th-resizable::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 8px;
+            background: transparent;
+        }
+</style>
+
+
+@code {
+    public RazonSocial razonSocial = new RazonSocial();
+    public List<RazonSocial> razonSociales = new List<RazonSocial>();
+    public List<Cliente> clientes = new List<Cliente>();
+    public List<Grupo> Grupos = new List<Grupo>();
+
+    Dictionary<string, string> query = new Dictionary<string, string>();
+    ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+
+    bool isEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetRazonSocial();
+        //await GetClientes();
+        await GetGroups();
+    }
+
+    private async Task SaveRSocial()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Post<RazonSocial>($"api/razonsocial/save", razonSocial);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Éxito", $"Razon social {razonSocial.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
+                await GetRazonSocial();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetGroups()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Grupo>>($"api/grupo/lista");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Exito", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetClientes()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Cliente>>($"api/cliente/lista");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                clientes = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Exito", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadData(ChangeEventArgs args)
+    {
+        busquedaCatalogo.nombrerazonSocial = args.Value?.ToString() ?? string.Empty;
+        await GetRazonSocial();
+    }
+
+    private async Task GetRazonSocial()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["nombrerazonSocial"] = busquedaCatalogo.nombrerazonSocial;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<RazonSocial>>($"api/razonsocial/list?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                razonSociales = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task HabilitarDeshabilitar(RazonSocial gt, ChangeEventArgs tp)
+    {
+        try
+        {
+            var status = (bool)tp.Value!;
+            var responseHttp = await repositorio.Put<bool>($"api/razonsocial/{gt.ID}", status);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (status)
+                {
+                    await Message($"{gt.Nombre} ha sido habilitado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Message($"{gt.Nombre} ha sido deshabilitado", SweetAlertIcon.Info);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Message(string Message, SweetAlertIcon icon)
+    {
+        await Swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
+    }
+
+    private void SetGrupo(RazonSocial raznSocial)
+    {
+        try
+        {
+            isEdit = true;
+            razonSocial = raznSocial;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
+
+    private async void cancelEdit()
+    {
+        isEdit = false;
+        razonSocial = new RazonSocial();
+    }
+
+}
+

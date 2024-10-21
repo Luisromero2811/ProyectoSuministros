@@ -1,0 +1,522 @@
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject GestionDestinoValidation gestionDestino
+@inject ClientDestinationValidation gestionRelacion
+
+<div class="card">
+    <div class="card-header">
+        <b>Catalogo de Destinos</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12">
+            <EditForm Model="@Destino" class="col-12 row" OnValidSubmit="@CreateDestinos" Context="Validation">
+                <FluentValidationValidator Validator="gestionDestino" />
+                <ValidationSummary />
+                <div class="col-12 row mb-3 justify-content-center">
+                    <div class="col-3">
+                        <label>ID Destino (Suministros):</label>
+                        <InputNumber @bind-Value="Destino.IDGob" class="form-control" MaxLenght="8" />
+                    </div>
+                    <div class="col-3">
+                        <label>Número MGC:</label>
+                        <InputText @bind-Value="Destino.NumMGC" class="form-control" MaxLength="40" />
+                    </div>
+                    <div class="col-3">
+                        <label>Nombre de la estación:</label>
+                        <InputText @bind-Value="Destino.Estacion" class="form-control" MaxLength="128" />
+                    </div>
+                    <div class="col-3">
+                        <label>Nombre México S</label>
+                        <InputText @bind-Value="Destino.NomMS" class="form-control" MaxLength="128" />
+                    </div>
+                </div>
+                <hr />
+                <div class="col-12 row mb-3 justify-content-center">
+                    <div class="col-3">
+                        <label>RFC:</label>
+                        <InputText @bind-Value="Destino.RFC" class="form-control" MaxLength="13" />
+                    </div>
+                    <div class="col-3">
+                        <label>Permiso CRE:</label>
+                        <InputText @bind-Value="Destino.CRE" class="form-control" MaxLength="80" />
+                    </div>
+                    <div class="col-3">
+                        <label>Número estación</label>
+                        <InputText @bind-Value="Destino.NEstacion" class="form-control" MaxLength="20" />
+                    </div>
+                </div>
+                <div class="col-12 row mb-3 justify-content-center">
+                    <div class="col-4 d-flex mt-auto">
+                        @if (!isEdit)
+                        {
+                            <button class="col-12 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-plus"></i> Registrar Destino
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="col mx-2 btn gsum-bg-amarillo" type="submit">
+                                <i class="fa fa-solid fa-check"></i>
+                            </button>
+                            <button class="col mx-2 btn gsum-bg-amarillo" @onclick="@cancelEdit" type="button">
+                                <i class="fa fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+            <EditForm Model="@RazonSocialDestinoDTO" class="col-12" OnValidSubmit="@RelationClient" Context="item">
+                <FluentValidationValidator Validator="gestionRelacion" />
+                <ValidationSummary />
+                <h6>Relacion Razon Social-Destino</h6>
+                <div class="col-12 row">
+                    <div class="col-4 row">
+                        <label>Razon Social:</label>
+                        <RadzenDropDown @bind-Value="RazonSocialDestinoDTO.razonSocial" Data="RazonSocial" TValue="RazonSocial" TextProperty="Nombre"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                            <Template>
+                                @((context as RazonSocial)?.Nombre)
+                            </Template>
+                            <ValueTemplate>
+                                @((context as RazonSocial)?.Nombre)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-4">
+                        <label>Destino:</label>
+                        <RadzenDropDown @bind-Value="RazonSocialDestinoDTO.destino" Data="DestinoRazonSocial" TValue="CodDenDTO" TextProperty="Den"
+                                        AllowVirtualization="true" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gsum-bg-amarillo" type="submit">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Destino-Cliente
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<!--Tabla de muestreo de datos-->
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Gestión de Destinos</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Razon Social</label>
+                <DropDownFilter Listado="RazonSocial" TListado="RazonSocial" TValue="int?" Propiedad_Valor="ID" On_Change_Method="@ChangeDestinos" @bind-Valor="Destino.CodRs"
+                                Default_Placeholder="Seleccione una Razon Social" FiltrarValor="Obtener_RazonesSociales">
+                    <RenderValue>
+                        @context.Nombre
+                    </RenderValue>
+                    <Render>
+                        @context.Nombre
+                    </Render>
+                </DropDownFilter>
+            </div>
+        </div>
+        <div class="col-12">
+            <Tabla Datos="Destinos">
+                <Cabeceras>
+                    <tr>
+                        <th>ID Destino (Suministro)</th>
+                        <th>Número MGC</th>
+                        <th>Nombre de Estación</th>
+                        <th>Nombre México S</th>
+                        <th>RFC</th>
+                        <th>Permiso CRE</th>
+                        <th>Número estación</th>
+                        <th>Activo</th>
+                        <th>Editar</th>
+                    </tr>
+                </Cabeceras>
+                <Filtros>
+                    <tr class="fila">
+                        <td></td>
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="FiltrarMGC" @bind="busquedaCatalogo.numeroMGC" />
+                        </td>
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombreDestino" />
+                        </td>
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="FiltrarMS" @bind="busquedaCatalogo.NomMexS" />
+                        </td>
+                        <td></td>
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="FiltrarCRE" @bind="busquedaCatalogo.PermisoCRE" />
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </Filtros>
+                <Columnas Context="item">
+                    <tr>
+                        <td>@item.IDGob</td>
+                        <td>@item.NumMGC</td>
+                        <td>@item.Estacion</td>
+                        <td>@item.NomMS</td>
+                        <td>@item.RFC</td>
+                        <td>@item.CRE</td>
+                        <td>@item.NEstacion</td>
+                        <!--Estado del destino-->
+                        <td>
+                            <div class="form-check form-switch mx-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="@item.ID" checked="@item.Activo"
+                                       @onchange="((ChangeEventArgs e) => HabilitarDeshabilitar(item, e))" />
+                            </div>
+                        </td>
+                        <!--Editar destino-->
+                        <td>
+                            <button class="btn btn-sm gsum-bg-amarillo" @onclick="@(()=>@SetDestino(item))">
+                                <i class="fa fa-solid fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
+<style>
+    .button-circle { /* Green */
+        border: none;
+        color: white;
+        padding: .40rem .60rem;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: .75rem;
+        cursor: pointer;
+        border-radius: 2rem;
+    }
+
+    .fila th {
+        position: -webkit-sticky;
+        position: sticky;
+        text-align: center;
+        top: 0;
+        background-color: #f2f2f2;
+    }
+
+    .fila td {
+        position: -webkit-sticky;
+        position: sticky;
+        text-align: center;
+        top: 28px;
+        background-color: #f2f2f2;
+    }
+
+    .sticky-column {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        background-color: white;
+    }
+
+    .sticky-column-header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        background-color: white;
+    }
+
+    .sticky-column, .sticky-column + th, .sticky-column + td {
+        min-width: 180px;
+    }
+
+    .th-resizable {
+        position: relative;
+        cursor: col-resize;
+    }
+
+        .th-resizable::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 8px;
+            background: transparent;
+        }
+</style>
+
+@code {
+    bool isEdit = false;
+
+    Dictionary<string, string> query = new Dictionary<string, string>();
+    ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
+    RazonSocialDestinoDTO RazonSocialDestinoDTO { get; set; } = new RazonSocialDestinoDTO();
+
+    public IEnumerable<CodDenDTO> DestinoRazonSocial { get; set; } = new List<CodDenDTO>();
+
+    public Destinos Destino { get; set; } = new Destinos();
+    public List<Destinos> Destinos { get; set; } = new List<Destinos>();
+    public List<RazonSocial> RazonSocial { get; set; } = new List<RazonSocial>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetIlistDestinos();
+        await GetRazonSocialList();
+        await Obtener_RazonesSociales(string.Empty);
+    }
+
+    private async Task CreateDestinos()
+    {
+        try
+        {
+            var response = await repositorio.Post<Destinos>($"api/destinos/crear", Destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino {Destino.Estacion} creado exitosamente", SweetAlertIcon.Success);
+                StateHasChanged();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                Destinos = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetRazonSocialList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<RazonSocial>>($"api/razonsocial/lista");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                RazonSocial = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetIlistDestinos()
+    {
+        try
+        {
+            var response = await repositorio.Get<IList<CodDenDTO>>("api/destinos/listados");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                DestinoRazonSocial = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadData(ChangeEventArgs args)
+    {
+        busquedaCatalogo.nombreDestino = args.Value?.ToString() ?? string.Empty;
+        await ChangeDestinos();
+    }
+
+    private async Task FiltrarMGC(ChangeEventArgs args)
+    {
+        busquedaCatalogo.numeroMGC = args.Value?.ToString() ?? string.Empty;
+        await ChangeDestinos();
+    }
+
+    private async Task FiltrarMS(ChangeEventArgs args)
+    {
+        busquedaCatalogo.NomMexS = args.Value?.ToString() ?? string.Empty;
+        await ChangeDestinos();
+    }
+
+    private async Task FiltrarCRE(ChangeEventArgs args)
+    {
+        busquedaCatalogo.PermisoCRE = args.Value?.ToString() ?? string.Empty;
+        await ChangeDestinos();
+    }
+
+    private async Task ChangeDestinos()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["nombreDestino"] = busquedaCatalogo.nombreDestino ?? string.Empty;
+            query["numeroMGC"] = busquedaCatalogo.numeroMGC ?? string.Empty;
+            query["NomMexS"] = busquedaCatalogo.NomMexS ?? string.Empty;
+            query["PermisoCRE"] = busquedaCatalogo.PermisoCRE ?? string.Empty;
+            query["codcte"] = RazonSocial.FirstOrDefault(x => x.ID == Destino.CodRs)?.ID.ToString() ?? string.Empty;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/lista?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Destinos = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task HabilitarDeshabilitar(Destinos destinos, ChangeEventArgs tp)
+    {
+        try
+        {
+            var status = (bool)tp.Value!;
+            var responseHttp = await repositorio.Put<bool>($"api/destinos/{destinos.ID}", status);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (status)
+                {
+                    await Message($"{destinos.Estacion} ha sido habilitado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Message($"{destinos.Estacion} ha sido deshabilitado", SweetAlertIcon.Info);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Message(string Message, SweetAlertIcon icon)
+    {
+        await Swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = Message });
+    }
+
+    private void SetDestino(Destinos destinos)
+    {
+        try
+        {
+            isEdit = true;
+            Destino = destinos;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
+
+    private async Task cancelEdit()
+    {
+        isEdit = false;
+        Destino = new Destinos();
+    }
+
+    private async Task RelationClient()
+    {
+        try
+        {
+            var response = await repositorio.Post<CodDenDTO>($"api/destinos/asignar/{RazonSocialDestinoDTO.razonSocial.ID}", RazonSocialDestinoDTO.destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Destino Asignado a {RazonSocialDestinoDTO.razonSocial.Nombre}", SweetAlertIcon.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_RazonesSociales(string value)
+    {
+        try
+        {
+            Dictionary<string, string> query = new();
+            query["Nombre"] = value;
+
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+
+            var response = await repositorio.Get<List<RazonSocial>>($"api/razonsocial/filtraractivos?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                RazonSocial = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+}
+
