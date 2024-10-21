@@ -74,7 +74,7 @@
 </div>
 
 <!--Tabla de muestreo de datos-->
-<div class="card mt-2" style="height: 500px; overflow: scroll;">
+<div class="card mt-2" style="height: auto; overflow: scroll;">
     <div class="card-header">
         <b>Gestión de Ejecutivos</b>
     </div>
@@ -121,11 +121,54 @@
         </div>
     </div>
 </div>
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Filtrado de Ejecutivos</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Destino:</label>
+                <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDEjecutivo" On_Change_Method="@ChangeEjecutive" @bind-Valor="DestinoFiltro.IDEjecutivo"
+                                Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Ejecutivos">
+                    <RenderValue>
+                        @context.NomMS - @context.Estacion
+                    </RenderValue>
+                    <Render>
+                        @context.NomMS - @context.Estacion
+                    </Render>
+                </DropDownFilter>
+            </div>
+        </div>
+        <div class="col-12">
+            <Tabla Datos="EjecutivoFiltro">
+                <Cabeceras>
+                    <tr>
+                        <th>Nombre del Ejecutivo</th>
+                    </tr>
+                </Cabeceras>
+                <Columnas Context="item">
+                    <tr>
+                        <td>
+                            @item.Nombre
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
 
 @code {
     public Ejecutivo Ejecutivo { get; set; } = new Ejecutivo();
     public List<Ejecutivo> Ejecutivos { get; set; } = new List<Ejecutivo>();
     public List<Ejecutivo> EjecutivosList { get; set; } = new List<Ejecutivo>();
+
+    //Filtrado de destinos para saber sus ejecutivos
+    public List<Ejecutivo> EjecutivoFiltro { get; set; } = new List<Ejecutivo>();
+    public List<Destinos> DestinosFiltro { get; set; } = new List<Destinos>();
+    public Destinos DestinoFiltro { get; set; } = new Destinos();
+    //Termina propiedades para filtrado de destino para conocer sus ejecutivos
 
     public EjecutivoDestinoDTO EjecutivoDestinoDTO { get; set; } = new EjecutivoDestinoDTO();
 
@@ -141,6 +184,7 @@
         await GetEjecutivo();
         await GetEjecutivos();
         await GetDestinoIList();
+        await GetDestinosList();
     }
 
     private async Task SaveEjecutivo()
@@ -312,6 +356,63 @@
             {
                 await Swal.FireAsync("Exito", $"Destino Asignado a {EjecutivoDestinoDTO.ejecutivo.Nombre}", SweetAlertIcon.Success);
             }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinosFiltro = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ChangeEjecutive()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["IDEjecutivo"] = DestinoFiltro.IDEjecutivo.ToString() ?? string.Empty;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Ejecutivo>>($"api/destinos/listaEjecutivo?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                EjecutivoFiltro = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Ejecutivos()
+    {
+        try
+        {
+
         }
         catch (Exception e)
         {

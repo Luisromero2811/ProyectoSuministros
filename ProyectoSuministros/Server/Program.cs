@@ -1,6 +1,13 @@
-﻿using Microsoft.AspNetCore.ResponseCompression;
+﻿using System.Text;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ProyectoSuministros.Server;
+using ProyectoSuministros.Server.Helpers;
+using ProyectoSuministros.Server.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,9 +18,48 @@ builder.Services.AddDbContext<ApplicationDbContext>(optionsAction =>
     });
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
 builder.Services.AddRazorPages();
 
+builder.Services.AddIdentity<IdentityUsuario, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["jwtkey"]!)),
+        ClockSkew = TimeSpan.Zero
+    });
+
+builder.Services.AddSingleton<VerifyUserToken>();
+builder.Services.AddSingleton<VerifyUserId>();
+
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
+    options.Secure = CookieSecurePolicy.Always;
+});
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    applicationDbContext.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

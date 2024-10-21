@@ -1,9 +1,23 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es-mx">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Security-Policy"
+          content="base-uri 'self';
+               default-src 'self';
+               img-src data: https:
+                             data:
+                             'self'
+                             blob:;
+               object-src 'none';
+               script-src 'self'
+                          'unsafe-eval'
+                          'unsafe-inline';
+               style-src 'self'
+                         'unsafe-inline';
+               upgrade-insecure-requests;">
     <title>Gestión Suministros</title>
     <base href="/" />
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
@@ -17,8 +31,19 @@
     <script src="js/jquery-3.7.1.min.js" type="text/javascript"></script>
     <script src="js/jquery-ui.min.js" type="text/javascript"></script>
     <script src="js/resizableTable.js" type="text/javascript"></script>
+
     <script src="js/chart.js"></script>
-    <script src="./Pages/Graficos/GraficoComprasMensualesClientesSimsaComponent.razor.js"></script>
+
+
+    <script src="./Pages/Graficos/ComprasMensualesCliente/ComprasMensualesClienteComponent.razor.js"></script>
+    <script src="./Pages/Graficos/ComprasMes2024/GraficoCompraComponent.razor.js"></script>
+    <script src="./Pages/Graficos/GraficoDiario/GraficoComportamientoDiarioComponent.razor.js"></script>
+    <script src="./Pages/Graficos/HistorialComprasMensuales/GraficoHistorialComprasMensualesComponent.razor.js"></script>
+    <script src="./Pages/Graficos/MensualesSIMSACliente/GraficoMesesClientesSimsaComponent.razor.js"></script>
+    <script src="./Pages/Graficos/VolumenDestinoM3/GraficoVolumenDestinoM3Component.razor.js"></script>
+    <script src="./Pages/Graficos/SIMSADestinoVolumenM3/GraficoVolumenSIMSAM3DestinoComponent.razor.js"></script>
+    <script src="./Pages/Graficos/VolumenGrupoM3/GraficoVolumenM3GrupoComponent.razor.js"></script>
+    <script src="./Pages/Graficos/GraficoSeleccionadoDiarioMes/GraficoComportamientoDiarioMesSeleccionadoComponent.razor.js"></script>
 </head>
 
 <body>
@@ -41,8 +66,10 @@
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
     <script src="./Shared/Tabla/Tabla.razor.js"></script>
+    <script src="js/SaveAsFile.js"></script>
     <script src="./Shared/MenuNav.razor.js"></script>
     <script src="./Shared/Menu_Lateral_Emergente.razor.js"></script>
+    <script src="./Shared/Tabla/Tabla.razor.js"></script>
     <script src="js/jquery-3.7.1.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
 </body>

@@ -103,7 +103,7 @@
 </div>
 
 <!--Tabla de muestreo de datos-->
-<div class="card mt-2" style="height: 500px; overflow: scroll;">
+<div class="card mt-2" style="height: auto; overflow: scroll;">
     <div class="card-header">
         <b>Gestión de Destinos</b>
     </div>
@@ -140,13 +140,19 @@
                 <Filtros>
                     <tr class="fila">
                         <td></td>
-                        <td></td>
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="FiltrarMGC" @bind="busquedaCatalogo.numeroMGC" />
+                        </td>
                         <td>
                             <input class="form-control form-control-sm" @oninput="LoadData" @bind="busquedaCatalogo.nombreDestino" />
                         </td>
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="FiltrarMS" @bind="busquedaCatalogo.NomMexS" />
+                        </td>
                         <td></td>
-                        <td></td>
-                        <td></td>
+                        <td>
+                            <input class="form-control form-control-sm" @oninput="FiltrarCRE" @bind="busquedaCatalogo.PermisoCRE" />
+                        </td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -180,7 +186,6 @@
         </div>
     </div>
 </div>
-
 <style>
     .button-circle { /* Green */
         border: none;
@@ -355,13 +360,25 @@
 
     private async Task LoadData(ChangeEventArgs args)
     {
-        Dictionary<string, string> queryStringObject = new Dictionary<string, string>();
-        if (queryStringObject is null) { queryStringObject = new Dictionary<string, string>(); }
-        queryStringObject["nombreDestino"] = busquedaCatalogo.nombreDestino;
+        busquedaCatalogo.nombreDestino = args.Value?.ToString() ?? string.Empty;
+        await ChangeDestinos();
+    }
 
-        var DefaultValues = new List<string>() { "false", "", "0" };
-        var uri = string.Join("&", queryStringObject.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
-        .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    private async Task FiltrarMGC(ChangeEventArgs args)
+    {
+        busquedaCatalogo.numeroMGC = args.Value?.ToString() ?? string.Empty;
+        await ChangeDestinos();
+    }
+
+    private async Task FiltrarMS(ChangeEventArgs args)
+    {
+        busquedaCatalogo.NomMexS = args.Value?.ToString() ?? string.Empty;
+        await ChangeDestinos();
+    }
+
+    private async Task FiltrarCRE(ChangeEventArgs args)
+    {
+        busquedaCatalogo.PermisoCRE = args.Value?.ToString() ?? string.Empty;
         await ChangeDestinos();
     }
 
@@ -371,6 +388,9 @@
         {
             query = new Dictionary<string, string>();
             query["nombreDestino"] = busquedaCatalogo.nombreDestino ?? string.Empty;
+            query["numeroMGC"] = busquedaCatalogo.numeroMGC ?? string.Empty;
+            query["NomMexS"] = busquedaCatalogo.NomMexS ?? string.Empty;
+            query["PermisoCRE"] = busquedaCatalogo.PermisoCRE ?? string.Empty;
             query["codcte"] = RazonSocial.FirstOrDefault(x => x.ID == Destino.CodRs)?.ID.ToString() ?? string.Empty;
             var uri = Constructor_De_URL_Parametros.Generar_URL(query);
             var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/lista?{uri}");
@@ -381,7 +401,6 @@
             }
             else
             {
-                StateHasChanged();
                 Destinos = responseHttp.Response!;
             }
         }

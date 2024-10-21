@@ -1,13 +1,14 @@
-﻿function initializeChart(labels, data) {
-    var ctx = document.getElementById('myChart').getContext('2d');
-    console.log(labels);
-    console.log(data);
-    var mychart = new Chart(ctx, {
+﻿function initializeChartVolumenMensualSIMSA(labels, data) {
+    var ctx = document.getElementById('myChartVolumenMesSIMSA').getContext('2d');
+    if (window.mychart) {
+        window.mychart.destroy();
+    }
+    window.mychart = new Chart(ctx, {
         type: 'bar', // Tipo de gráfica (puede ser 'line', 'bar', 'pie', etc.)
         data: {
             labels: labels,
             datasets: [{
-                label: '# of Votes',
+                label: 'Volumen Destino M3',
                 data: data,
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.2)',
@@ -29,6 +30,8 @@
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true

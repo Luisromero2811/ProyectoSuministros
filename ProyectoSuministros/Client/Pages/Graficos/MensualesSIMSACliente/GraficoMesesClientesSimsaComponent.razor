@@ -6,11 +6,11 @@
 
 <h3>Compras mensuales Clientes y SIMSA 2024</h3>
 
-<canvas id="myChart" style="width:100%; max-width:700px;"></canvas>
+<canvas id="myChartSIMSACliente" style="width:100%; height: 600px;"></canvas>
 
 @code {
-    private DotNetObjectReference<GraficoComprasMensualesClientesSimsaComponent> objRef;
-    private List<Compras_Grafica> compras_ = new();
+    private DotNetObjectReference<GraficoMesesClientesSimsaComponent> objRef;
+    private List<ComprasMensuales> compras_ = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,7 +24,7 @@
             objRef = DotNetObjectReference.Create(this);
             await Data();
 
-            await js.InvokeVoidAsync("initializeChart", compras_.Select(x => x.Volumen));
+            await js.InvokeVoidAsync("initializeChartMesesClientesSimsa", compras_.Select(x => x.Mes), compras_.Select(x => x.Volumen));
         }
     }
 
@@ -37,15 +37,11 @@
     {
         try
         {
-            var responseHttp = await http.Get<List<Compras_Grafica>>("api/compras/MensualClienteSimsa");
-            if (responseHttp.Error)
+            var responseHttp = await http.Get<List<ComprasMensuales>>("api/compras/MensualClienteSimsa");
+            if (!responseHttp.Error)
             {
-                var message = await responseHttp.ObtenerMensajeError();
-                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
-            }
-            else
-            {
-                compras_ = responseHttp.Response!;
+                Console.WriteLine("Inicio", responseHttp);
+                compras_ = responseHttp.Response;
             }
         }
         catch (Exception e)
@@ -54,7 +50,7 @@
         }
     }
 
-    private record Compras_Grafica(double? Volumen);
+    private record ComprasMensuales(string Mes, double? Volumen);
 
 }
 

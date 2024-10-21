@@ -73,7 +73,7 @@
     </div>
 </div>
 <!--Tabla de muestreo de datos-->
-<div class="card mt-2" style="height: 500px; overflow: scroll;">
+<div class="card mt-2" style="height: auto; overflow: scroll;">
     <div class="card-header">
         <b>Gestión de Franquicia</b>
     </div>
@@ -120,6 +120,43 @@
         </div>
     </div>
 </div>
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Filtrado de Franquicia</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Destino:</label>
+                <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDCluster" On_Change_Method="@ChangeFranquicia" @bind-Valor="DestinoFiltro.IDFranquicia"
+                                Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Franquicia">
+                    <RenderValue>
+                        @context.NomMS - @context.Estacion
+                    </RenderValue>
+                    <Render>
+                        @context.NomMS - @context.Estacion
+                    </Render>
+                </DropDownFilter>
+            </div>
+        </div>
+        <div class="col-12">
+            <Tabla Datos="FranquiciaFiltro">
+                <Cabeceras>
+                    <tr>
+                        <th>Nombre del Clúster</th>
+                    </tr>
+                </Cabeceras>
+                <Columnas Context="item">
+                    <tr>
+                        <td>
+                            @item.Nombre
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
 @code {
     public Franquicia Franquicia { get; set; } = new Franquicia();
     public List<Franquicia> Franquicias { get; set; } = new List<Franquicia>();
@@ -127,6 +164,13 @@
     FranquiciaDestinoDTO FranquiciaDestinoDTO { get; set; } = new FranquiciaDestinoDTO();
 
     public IEnumerable<CodDenDTO> DestinoFranquicia { get; set; } = new List<CodDenDTO>();
+
+    //Filtrado de destino para saber su Cluster
+    public Destinos DestinoFiltro { get; set; } = new Destinos();
+    public List<Destinos> DestinosFiltro { get; set; } = new List<Destinos>();
+    public List<Franquicia> FranquiciaFiltro { get; set; } = new List<Franquicia>();
+    //Termina propiedades para filtrado de destino para saber su Cluster
+
 
     Dictionary<string, string> query = new Dictionary<string, string>();
     ParametrosBusquedaCatalogo busquedaCatalogo = new ParametrosBusquedaCatalogo();
@@ -138,6 +182,7 @@
         await GetFranquicias();
         await GetDestinoIList();
         await GetFranchises();
+        await GetDestinosList();
     }
 
     private async Task SaveFranquicia()
@@ -310,6 +355,64 @@
                 StateHasChanged();
                 DestinoFranquicia = response.Response;
             }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinosFiltro = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ChangeFranquicia()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["IDFranquicia"] = DestinoFiltro.IDFranquicia.ToString() ?? string.Empty;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<Franquicia>>($"api/destinos/listaFranquicia?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                FranquiciaFiltro = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Franquicia()
+    {
+        try
+        {
+
         }
         catch (Exception e)
         {

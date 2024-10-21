@@ -1,0 +1,359 @@
+﻿@page "/usuarios"
+
+@inject IRepositorio repositorio
+@inject SweetAlertService swal
+@inject NavigationManager navigationManager
+@inject UsuarioInfoValidation validation
+
+<h4><b>Usuarios</b></h4>
+<!--Maquetacion formulario de usuarios-->
+<div class="col-12 card shadow p-2 mb-4">
+    <div class="card-body g-3">
+        <EditForm Model="@info" class="form col-12" OnValidSubmit="@PostUsers">
+            <FluentValidationValidator Validator="validation" />
+            <ValidationSummary />
+            <div class="col-12 row d-flex g-3 p-2">
+                <div class="col-4 mb-1">
+                    <div class="col-12">
+                        <div class="col-12 row p-0">
+                            <label>Nombre Completo:</label>
+                        </div>
+                        <div class="mt-2">
+                            <InputText class="form-control" @bind-Value="info.Nombre" MaxLenght="60" />
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-4 mb-1">
+                    <div class="col-12">
+                        <div class="col-12 row p-0" @ref="infosIcon">
+                            <label class="form-label">
+                                Nombre Usuario: <i class="fa-solid fa-circle-info fa-xs"></i>
+                            </label>
+                        </div>
+                        <InputText class="form-control" @bind-Value="info.UserName" />
+                    </div>
+                </div>
+                <div class="col-4 mb-1">
+                    <div class="col-12">
+                        <div class="col-12 row p-0" @ref="infoIcon">
+                            <label class="form-label">
+                                Contraseña <i class="fa-solid fa-circle-info fa-xs"></i>
+                            </label>
+                        </div>
+                        @*<InputText class="form-control" @bind-Value="usuarioSeleccionado.FirstOrDefault()!.Password" />*@
+
+                        <RadzenPassword @bind-Value="info.Password" Visible="@info.passwordView" />
+                        <RadzenTextBox @bind-Value="info.Password" Visible="@(info.passwordView == false)" />
+                        <RadzenCheckBox @bind-Value="@info.passwordView" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 row p-2">
+                <div class="col-12">
+                    <label>Roles:</label>
+                    <!--Selector multiple de Radzen-->
+                    <RadzenDropDown @bind-Value="info.Roles" Data="Roles" TextProperty="NombreRol" ValueProperty="NombreRol"
+                                    Multiple=true Placeholder="Seleccione los roles" Chips=true class="col-12" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
+                </div>
+            </div>
+            <div class="col-12 mt-2 mb-3">
+                <div class="col-12 mb-2">
+                    <div class="row d-flex justify-content-start">
+                        <div class="col-4">
+                            <RadzenCheckBox @bind-Value="info.ShowUsersActions" Name="CheckBox2" class="mx-3" />
+                            <RadzenLabel Text="Mostrar acciones" Component="CheckBox2" />
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center">
+                        @if (info.ShowUsersActions)
+                        {
+                            <div class="col-3">
+                                <button class="btn gsum-bg-amarillo col-12" type="submit"><i class="fa-solid fa-user-plus"></i> <b>Agregar</b></button>
+                            </div>
+                            <div class="col-3" @ref="Icon">
+                                <button class="btn gsum-bg-amarillo col-12" @onclick="@EditUser" type="button"><i class="fa-solid fa-floppy-disk"></i> <b>Guardar Cambios</b></button>
+                            </div>
+                            <div class="col-3">
+                                <button class="btn gsum-bg-amarillo col-12" @onclick="@ClearFormData" type="button"><i class="fa fa-solid fa-broom"></i> <b>Limpiar Formulario</b></button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<div class="container-fluid overflow-scroll">
+    <Tabla Datos="Usuarios">
+        <Cabeceras>
+            <tr>
+                <th></th>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Contraseña</th>
+                <th>Roles</th>
+                <th>Activar/Desactivar</th>
+            </tr>
+        </Cabeceras>
+        <Columnas Context="item">
+            <tr>
+                <td>
+                    <div class="col-12 row">
+                        <div class="col-12">
+                            <button class="btn btn-primary col-12" @onclick="@(() => setEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                        </div>
+                    </div>
+                </td>
+                <td>@item.Nombre</td>
+                <td>@item.UserName</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        @if (usuarioSeleccionado.Count == 1)
+                        {
+                            <button type="button" class="btn gsum-bg-amarillo col-12" @onclick="@(() => ShowPassword(item.Password))" id="liveToastBtn"><i class="fa fa-solid fa-eye"></i> <b>Mostrar Contraseña</b></button>
+
+                        }
+                    </div>
+                </td>
+                <td>
+                    @foreach (var i in item.Roles)
+                    {
+                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="Light" Width="20px">
+                            @i
+                        </RadzenBadge>
+                    }
+                </td>
+                <td>
+                    <div class="col-12">
+                        <div class="form-check form-switch m-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="@item.UserCod" checked="@item.Activo"
+                                   @onchange="@((ChangeEventArgs e) => ActivateUser(item.UserCod, e, item.Nombre))">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </Columnas>
+    </Tabla>
+</div>
+
+
+@code {
+    public bool ShowUsersActions { get; set; } = false;
+
+    UsuarioInfo info { get; set; } = new UsuarioInfo();
+    bool passwordView = true;
+    //Listas
+    UsuarioInfo users { get; set; } = new UsuarioInfo();
+    List<UsuarioInfo> Usuarios { get; set; } = new List<UsuarioInfo>();
+
+    private List<RolDTO> Roles { get; set; } = null!;
+    private List<string> RolesSelectDTO = new List<string>();
+
+    //Usuario seleccionado
+    private IList<UsuarioInfo> usuarioSeleccionado { get; set; } = new List<UsuarioInfo> { new UsuarioInfo() };
+
+    //loadings
+    bool loadingEdit = false;
+
+    ElementReference infoIcon;
+    ElementReference infosIcon;
+    ElementReference Icon;
+
+    private RadzenDropDown<List<string>> dropdown = new RadzenDropDown<List<string>>();
+
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30 };
+
+    //Ciclo de vida de inicio del componente
+    protected override async Task OnInitializedAsync()
+    {
+        await GetRoles();
+        await GetUsers();
+    }
+
+    private string passwordType = "password";
+
+    private void ClearFormData()
+    {
+        info = new UsuarioInfo();
+    }
+
+    //Obtención de roles
+    public async Task GetRoles()
+    {
+        //Variable donde guardamos la obtención de los roles
+        var respuestaHTTP = await repositorio.Get<List<RolDTO>>("api/usuarios/roles");
+
+        if (respuestaHTTP.Error)
+        {
+            var mensajeError = await respuestaHTTP.ObtenerMensajeError();
+            await swal.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+        }
+        else
+        {
+            Roles = respuestaHTTP.Response;
+        }
+    }
+
+    //Obtención de usuarios en lista
+    public async Task GetUsers()
+    {
+        //Variable donde guardamos la obtención de los usuarios
+        var respuestaHTTP = await repositorio.Get<List<UsuarioInfo>>("api/usuarios/list");
+
+        if (respuestaHTTP.Error)
+        {
+            var mensajeError = await respuestaHTTP.ObtenerMensajeError();
+            await swal.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+        }
+        else
+        {
+            Usuarios = respuestaHTTP.Response;
+        }
+    }
+
+    //Funcion para habilitar la accion de editar el usuario
+    private async void setEdit(UsuarioInfo Item)
+    {
+        try
+        {
+            info = Item;
+            StateHasChanged();
+            info = Item;
+            //Console.WriteLine(JsonConvert.SerializeObject(Item));
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+
+    //Creación de usuarios nuevos
+    public async Task PostUsers()
+    {
+        //Petición hacía controlador donde creamos el usuario
+        var respuestaHTTP = await repositorio.Post<UsuarioInfo, UsuarioInfo>("api/usuarios/crear", info);
+        if (info.Nombre != null && info.UserName != null && info.Password != null)
+        {
+            if (respuestaHTTP.Error)
+            {
+                var responseHTTP = await respuestaHTTP.ObtenerMensajeError();
+                await swal.FireAsync("Error", responseHTTP, SweetAlertIcon.Error);
+            }
+            else
+            {
+                //Formamos el POST para agregar al nuevo usuario
+                if (respuestaHTTP.Response is not null)
+                {
+
+                    await swal.FireAsync("Éxito", "Usuario creado correctamente", SweetAlertIcon.Success);
+                    await GetUsers();
+
+                }
+            }
+        }
+        else
+        {
+            await swal.FireAsync("Advertencia", "Verifique que todos los campos esten rellenados por favor.", SweetAlertIcon.Warning);
+        }
+
+    }
+    //Edición del usuario
+    public async Task EditUser()
+    {
+        try
+        {
+            if (usuarioSeleccionado.Count == 0)
+            {
+                await swal.FireAsync("Advertencia", "Seleccione a un usuario para editar", SweetAlertIcon.Warning);
+            }
+            else
+            {
+                var responseHttp = await repositorio.Put<UsuarioInfo>($"api/usuarios/editar", info);
+
+                if (responseHttp.Error)
+                {
+                    var respuestaHttp = await responseHttp.ObtenerMensajeError();
+                    await swal.FireAsync("Error", respuestaHttp, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    await swal.FireAsync("Exito", "El usuario ha sido modificado", SweetAlertIcon.Success);
+                    await GetUsers();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+    //Función asincrona para activar al usuario o desactivarlo.
+    //Dentro de los parametros a asignar vamos a trabajar con el usuario que se va a modificar y un cambio evento que se encarga de modificar el dato
+    public async Task ActivateUser(int code, ChangeEventArgs act, string name)
+    {
+        try
+        {
+            //Variable booleana ligada al parametro de cambio de evento.
+            UsuarioInfo usuarioInfo = new UsuarioInfo() { UserCod = code, Activo = (bool)act.Value, Nombre = name };
+            //Petición de tipo PUT recibiendo un valor booleano, mandando el cod del usuario y el cambio de estado activo
+            var responseHttp = await repositorio.Put<UsuarioInfo>($"api/usuarios/activar", usuarioInfo);
+            if (responseHttp.Error)
+            {
+                var respuestaHttp = await responseHttp.ObtenerMensajeError();
+                await swal.FireAsync("Error", respuestaHttp, SweetAlertIcon.Error);
+            }
+            else
+            {
+                if (usuarioInfo.Activo)
+                {
+                    await Alertas($"El usuario: {usuarioInfo.Nombre} ha sido activado", SweetAlertIcon.Info);
+                }
+                else
+                {
+                    await Alertas($"El usuario: {usuarioInfo.Nombre} ha sido desactivado", SweetAlertIcon.Info);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+    private string displayedPassword = null!;
+    private async Task ShowPassword(string password)
+    {
+        displayedPassword = password;
+        await AlertaPass($"La contraseña es: {displayedPassword}", SweetAlertIcon.Info);
+    }
+    //Función privada para creación de alertas personalizadas
+    private async Task AlertaPass(string message, SweetAlertIcon icon)
+    {
+        await swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            ShowCloseButton = true,
+            Timer = 20000,
+            TimerProgressBar = true,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = message });
+    }
+    //Función privada para creación de alertas personalizadas
+    private async Task Alertas(string message, SweetAlertIcon icon)
+    {
+        await swal.Mixin(new SweetAlertOptions
+        {
+            Position = "top-end",
+            ShowConfirmButton = false,
+            Timer = 1800,
+            TimerProgressBar = true,
+            Toast = true,
+        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = message });
+    }
+
+}
+

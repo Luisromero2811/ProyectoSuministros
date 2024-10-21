@@ -77,7 +77,7 @@
     </div>
 </div>
 <!--Tabla de muestreo de datos-->
-<div class="card mt-2" style="height: 500px; overflow: scroll;">
+<div class="card mt-2" style="height: auto; overflow: scroll;">
     <div class="card-header">
         <b>Gestión de TAD's</b>
     </div>
@@ -127,6 +127,43 @@
     </div>
 </div>
 
+<div class="card mt-2" style="height: auto; overflow: scroll;">
+    <div class="card-header">
+        <b>Filtrado de TAD</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3 mb-2">
+                <label>Destino:</label>
+                <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDTad" On_Change_Method="@ChangeTAD" @bind-Valor="DestinoFiltro.IDTad"
+                                Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Cluster">
+                    <RenderValue>
+                        @context.NomMS - @context.Estacion
+                    </RenderValue>
+                    <Render>
+                        @context.NomMS - @context.Estacion
+                    </Render>
+                </DropDownFilter>
+            </div>
+        </div>
+        <div class="col-12">
+            <Tabla Datos="TADFiltro">
+                <Cabeceras>
+                    <tr>
+                        <th>Nombre de TAD</th>
+                    </tr>
+                </Cabeceras>
+                <Columnas Context="item">
+                    <tr>
+                        <td>
+                            @item.Nombre
+                        </td>
+                    </tr>
+                </Columnas>
+            </Tabla>
+        </div>
+    </div>
+</div>
 
 @code {
     public TAD Tad { get; set; } = new TAD();
@@ -135,6 +172,13 @@
     TadDestinoDTO TadDestinoDTO { get; set; } = new TadDestinoDTO();
 
     public IEnumerable<CodDenDTO> DestinoTAD { get; set; } = new List<CodDenDTO>();
+
+    //Filtrado de destino para saber su Cluster
+    public Destinos DestinoFiltro { get; set; } = new Destinos();
+    public List<Destinos> DestinosFiltro { get; set; } = new List<Destinos>();
+    public List<TAD> TADFiltro { get; set; } = new List<TAD>();
+    //Termina propiedades para filtrado de destino para saber su Cluster
+
 
     bool isEdit = false;
 
@@ -146,6 +190,7 @@
         await GetTAD();
         await GetTADs();
         await GetIlistDestinos();
+        await GetDestinosList();
     }
 
     private async Task SaveTad()
@@ -317,6 +362,64 @@
                 StateHasChanged();
                 DestinoTAD = response.Response;
             }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetDestinosList()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Get<List<Destinos>>($"api/destinos/listado");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                DestinosFiltro = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ChangeTAD()
+    {
+        try
+        {
+            query = new Dictionary<string, string>();
+            query["IDTad"] = DestinoFiltro.IDTad.ToString() ?? string.Empty;
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+            var responseHttp = await repositorio.Get<List<TAD>>($"api/destinos/listaTAD?{uri}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                TADFiltro = responseHttp.Response!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Cluster()
+    {
+        try
+        {
+
         }
         catch (Exception e)
         {

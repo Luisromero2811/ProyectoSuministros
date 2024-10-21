@@ -56,11 +56,19 @@
         <Filtros>
             <td></td>
             <td></td>
+            <td>
+                <input type="text" class="form-control form-control-sm" @oninput="@((args)=>FiltrarNRemision(args))" />
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" @oninput="@((args)=>FiltrarNFactura(args))" />
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" @oninput="@((args)=>FiltrarProducto(args))" />
+            </td>
             <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>
+                <input type="text" class="form-control form-control-sm" @oninput="@((args)=>FiltrarDestino(args))" />
+            </td>
             <td></td>
             <td></td>
             <td></td>
@@ -127,6 +135,10 @@
     private async Task LoadData()
     {
         if (queryStringObject is null) { queryStringObject = new Dictionary<string, string>(); }
+        queryStringObject["nremision"] = busquedaFacturas.nremision;
+        queryStringObject["nfactura"] = busquedaFacturas.nfactura;
+        queryStringObject["producto"] = busquedaFacturas.producto;
+        queryStringObject["destino"] = busquedaFacturas.destino;
         queryStringObject["pagina"] = busquedaFacturas.pagina.ToString();
         queryStringObject["tamanopagina"] = busquedaFacturas.tamanopagina.ToString();
 
@@ -265,7 +277,43 @@
     {
         PaginaActual = pagina;
         busquedaFacturas.pagina = PaginaActual;
-        //LoadData();
+        await LoadData();
+    }
+
+    private async Task FiltrarNRemision(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            busquedaFacturas.nremision = e.Value.ToString();
+            await LoadData();
+        }
+    }
+
+    private async Task FiltrarNFactura(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            busquedaFacturas.nfactura = e.Value.ToString();
+            await LoadData();
+        }
+    }
+
+    private async Task FiltrarProducto(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            busquedaFacturas.producto = e.Value.ToString();
+            await LoadData();
+        }
+    }
+
+    private async Task FiltrarDestino(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            busquedaFacturas.destino = e.Value.ToString();
+            await LoadData();
+        }
     }
 
 }
