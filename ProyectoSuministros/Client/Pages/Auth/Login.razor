@@ -68,7 +68,7 @@
         try
         {
             loading = true;
-            var response = await repositorio.Post<UserLogin, UserTokenDTO>("api/cuentas/login", usuario);
+            var response = await repositorio.Post<UserLogin, UserTokenDTO>("api/auth/login", usuario);
             if (response.Error)
             {
                 loading = false;
