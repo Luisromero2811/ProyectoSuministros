@@ -19,24 +19,21 @@ using ProyectoSuministros.Shared.DTOs;
 namespace ProyectoSuministros.Server.Controllers.Auth
 {
     [ApiController]
-    [Route("api/cuentas")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly UserManager<IdentityUsuario> userManager;
         private readonly SignInManager<IdentityUsuario> signInManager;
-        private readonly RoleManager<IdentityRole> roleManager;
         private readonly IConfiguration configuration;
         private readonly ApplicationDbContext context;
 
         public AuthController(UserManager<IdentityUsuario> userManager,
         SignInManager<IdentityUsuario> signInManager,
-        RoleManager<IdentityRole> roleManager,
         IConfiguration configuration,
         ApplicationDbContext context)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
-            this.roleManager = roleManager;
             this.configuration = configuration;
             this.context = context;
         }
@@ -89,22 +86,18 @@ namespace ProyectoSuministros.Server.Controllers.Auth
             var Claims = Validar_Token(t);
 
             if (Claims is not null)
-            {
                 userInfo.UserName = Claims.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
-            }
 
             return await BuildToken(userInfo);
         }
 
         private async Task<UserTokenDTO> BuildToken(UsuarioInfo info)
         {
-            
             var claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.Name, info.UserName),
-                new Claim(JwtRegisteredClaimNames.UniqueName, info.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-               
+                new(ClaimTypes.Name, info.UserName),
+                new(JwtRegisteredClaimNames.UniqueName, info.UserName),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             if (string.IsNullOrEmpty(info.UserName))
