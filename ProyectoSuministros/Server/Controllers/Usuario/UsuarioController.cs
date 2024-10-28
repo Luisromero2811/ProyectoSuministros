@@ -32,10 +32,11 @@ namespace ProyectoSuministros.Server.Controllers.UsuarioController
         }
 
         [HttpGet("list")]
-        public async Task<ActionResult> GetUsers()
+        public async Task<ActionResult> GetUsers([FromQuery] ParametrosBusquedaUsuarios parametros)
         {
             try
             {
+                // Materializamos la lista de usuarios, evitando un AsQueryable en el resultado parcial.
                 var usuarios = await context.Usuario.Select(x => new UsuarioInfo
                 {
                     UserName = x.Usu!,
@@ -45,6 +46,10 @@ namespace ProyectoSuministros.Server.Controllers.UsuarioController
                     Activo = x.Activo,
                 }).ToListAsync();
 
+                // Creamos una nueva lista de usuarios completa con roles
+                var usuariosConRoles = new List<UsuarioInfo>();
+
+                // Iteramos sobre los usuarios para agregar roles e ID
                 foreach (var item in usuarios)
                 {
                     var u = await context.Users.Where(x => x.UserCod == item.UserCod).FirstOrDefaultAsync();
@@ -52,18 +57,36 @@ namespace ProyectoSuministros.Server.Controllers.UsuarioController
                     {
                         IList<string> roles = await userManager.GetRolesAsync(u);
 
-                        usuarios.Single(x => x.UserCod == item.UserCod).Roles = roles.ToList();
-                        usuarios.Single(x => x.UserCod == item.UserCod).Id = u.Id;
+                        // Asignamos los datos adicionales al objeto temporal
+                        item.Roles = roles.ToList();
+                        item.Id = u.Id;
                     }
+
+                    usuariosConRoles.Add(item);
                 }
 
-                return Ok(usuarios);
+                // Calculamos manualmente los valores de paginación
+                var totalUsuarios = usuariosConRoles.Count;
+                var totalPaginas = (int)Math.Ceiling(totalUsuarios / (double)parametros.tamanopagina);
+
+                // Insertamos los parámetros de paginación en el encabezado HTTP manualmente
+                HttpContext.Response.Headers["conteo"] = totalUsuarios.ToString();
+                HttpContext.Response.Headers["paginas"] = totalPaginas.ToString();
+                HttpContext.Response.Headers["pagina"] = parametros.pagina.ToString();
+
+                // Aplicamos la paginación
+                var usuariosPaginados = usuariosConRoles
+                    .Skip((parametros.pagina - 1) * parametros.tamanopagina)
+                    .Take(parametros.tamanopagina);
+
+                return Ok(usuariosPaginados);
             }
             catch (Exception e)
             {
                 return BadRequest(e.Message);
             }
         }
+
 
         [HttpGet("roles")]
         public async Task<ActionResult<List<RolDTO>>> Get()
