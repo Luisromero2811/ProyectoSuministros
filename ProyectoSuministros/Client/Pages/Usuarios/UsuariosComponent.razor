@@ -137,9 +137,20 @@
         </Columnas>
     </Tabla>
 </div>
-
+<div class="col-12">
+    <PaginacionComponent PaginaActual="PaginaActual" PaginasTotales="PaginasTotales" PaginaSeleccionada="Pagina_Seleccionada" Radio="5" />
+    <div class="col-12">
+        <p>Total de registros: @ConteoTotal</p>
+    </div>
+</div>
 
 @code {
+    //Parametros de búsqueda
+    ParametrosBusquedaUsuarios busquedaUsuarios = new ParametrosBusquedaUsuarios();
+    int PaginasTotales;
+    int PaginaActual = 1;
+    int ConteoTotal;
+
     public bool ShowUsersActions { get; set; } = false;
 
     UsuarioInfo info { get; set; } = new UsuarioInfo();
@@ -169,7 +180,7 @@
     protected override async Task OnInitializedAsync()
     {
         await GetRoles();
-        await GetUsers();
+        await LoadData();
     }
 
     private string passwordType = "password";
@@ -196,11 +207,26 @@
         }
     }
 
+    Dictionary<string, string> queryStringObjectPro = new Dictionary<string, string>();
+
+    private async Task LoadData()
+    {
+        if (queryStringObjectPro is null) { queryStringObjectPro = new Dictionary<string, string>(); }
+        queryStringObjectPro["pagina"] = busquedaUsuarios.pagina.ToString();
+        queryStringObjectPro["tamanopagina"] = busquedaUsuarios.tamanopagina.ToString();
+
+        var DefaultValues = new List<string>() { "false", "", "0" };
+        var uri = string.Join("&", queryStringObjectPro.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+        .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+        await GetUsers(uri);
+    }
+
     //Obtención de usuarios en lista
-    public async Task GetUsers()
+    public async Task GetUsers(string uri)
     {
         //Variable donde guardamos la obtención de los usuarios
-        var respuestaHTTP = await repositorio.Get<List<UsuarioInfo>>("api/usuarios/list");
+        var respuestaHTTP = await repositorio.Get<List<UsuarioInfo>>($"api/usuarios/list?{uri}");
 
         if (respuestaHTTP.Error)
         {
@@ -209,9 +235,34 @@
         }
         else
         {
+            PaginasTotales = int.Parse(respuestaHTTP.HttpResponseMessage.Headers.GetValues("paginas").FirstOrDefault());
+            ConteoTotal = int.Parse(respuestaHTTP.HttpResponseMessage.Headers.GetValues("conteo").FirstOrDefault());
+            PaginaActual = int.Parse(respuestaHTTP.HttpResponseMessage.Headers.GetValues("pagina").FirstOrDefault());
             Usuarios = respuestaHTTP.Response;
         }
     }
+
+    ////Obtención de usuarios en lista
+    //public async Task GetUsers(string uri)
+    //{
+    //    //Variable donde guardamos la obtención de los usuarios
+    //    var respuestaHTTP = await repositorio.Get<List<UsuarioInfo>>($"api/usuarios/list?{uri}");
+
+    //    if (respuestaHTTP.Error)
+    //    {
+    //        var mensajeError = await respuestaHTTP.ObtenerMensajeError();
+    //        await swal.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+    //    }
+    //    else
+    //    {
+    //        // Usar nombres de encabezados que coincidan con los configurados en el backend
+    //        PaginasTotales = int.Parse(respuestaHTTP.HttpResponseMessage.Headers.GetValues("X-Total-Pages").FirstOrDefault());
+    //        ConteoTotal = int.Parse(respuestaHTTP.HttpResponseMessage.Headers.GetValues("X-Total-Count").FirstOrDefault());
+    //        PaginaActual = int.Parse(respuestaHTTP.HttpResponseMessage.Headers.GetValues("X-Current-Page").FirstOrDefault());
+    //        Usuarios = respuestaHTTP.Response;
+    //    }
+    //}
+
 
     //Funcion para habilitar la accion de editar el usuario
     private async void setEdit(UsuarioInfo Item)
@@ -249,7 +300,7 @@
                 {
 
                     await swal.FireAsync("Éxito", "Usuario creado correctamente", SweetAlertIcon.Success);
-                    await GetUsers();
+                    await LoadData();
 
                 }
             }
@@ -281,7 +332,7 @@
                 else
                 {
                     await swal.FireAsync("Exito", "El usuario ha sido modificado", SweetAlertIcon.Success);
-                    await GetUsers();
+                    await LoadData();
                 }
             }
         }
@@ -353,6 +404,13 @@
             TimerProgressBar = true,
             Toast = true,
         }).FireAsync(new SweetAlertOptions { Icon = icon, Text = message });
+    }
+
+    private async Task Pagina_Seleccionada(int pagina)
+    {
+        PaginaActual = pagina;
+        busquedaUsuarios.pagina = PaginaActual;
+        await LoadData();
     }
 
 }

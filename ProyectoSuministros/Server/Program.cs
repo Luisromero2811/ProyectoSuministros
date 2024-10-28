@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -17,7 +18,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(optionsAction =>
         optionsAction.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
     });
 
-builder.Services.AddControllersWithViews();
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
@@ -46,6 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddSingleton<VerifyUserToken>();
 builder.Services.AddSingleton<VerifyUserId>();
+builder.Services.AddSingleton(new CultureInfo("es-Mx"));
 
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
@@ -87,6 +88,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();
