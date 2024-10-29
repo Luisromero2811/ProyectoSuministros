@@ -6,7 +6,16 @@
 
 <h3>Comportamiento diario de Compras (Mes en curso)</h3>
 
-<canvas id="myChartComportamiento" style="width:100%; height: 600px;"></canvas>
+<div style="max-width: 100%; height: auto;">
+    <canvas id="myChartComportamiento"></canvas>
+</div>
+
+<style>
+    #myChartComportamiento {
+        width: 100% !important;
+        height: auto !important;
+    }
+</style>
 
 @code {
     private DotNetObjectReference<GraficoComportamientoDiarioComponent> objRef;

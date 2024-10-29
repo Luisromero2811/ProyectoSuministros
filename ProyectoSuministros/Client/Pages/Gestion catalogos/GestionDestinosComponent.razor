@@ -103,7 +103,7 @@
 </div>
 
 <!--Tabla de muestreo de datos-->
-<div class="card mt-2" style="height: auto; overflow: scroll;">
+<div class="card mt-2" style="height: 300px; overflow: scroll;">
     <div class="card-header">
         <b>Gestión de Destinos</b>
     </div>
@@ -283,6 +283,7 @@
             else
             {
                 await Swal.FireAsync("Exito", $"Destino {Destino.Estacion} creado exitosamente", SweetAlertIcon.Success);
+                await GetIlistDestinos();
                 StateHasChanged();
             }
         }

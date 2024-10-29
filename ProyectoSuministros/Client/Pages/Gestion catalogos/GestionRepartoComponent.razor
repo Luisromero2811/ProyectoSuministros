@@ -122,7 +122,7 @@
     </div>
 </div>
 
-<div class="card mt-2" style="height: auto; overflow: scroll;">
+<div class="card mt-2" style="height: 200px; overflow: scroll;">
     <div class="card-header">
         <b>Filtrado de Reparto</b>
     </div>
@@ -184,6 +184,7 @@
         await GetRepartos();
         await GetIlistDestinos();
         await GetDestinosList();
+        await Obtener_Reparto(string.Empty);
     }
 
     private async Task SaveReparto()
@@ -408,9 +409,31 @@
         }
     }
 
-    private async Task Obtener_Reparto()
+    private async Task Obtener_Reparto(string value)
     {
+        try
+        {
+            Dictionary<string, string> query = new();
+            query["NomMS"] = value;
 
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+
+            var response = await repositorio.Get<List<Destinos>>($"api/destinos/filtraractivos?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                DestinosFiltro = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
     }
 
 }
