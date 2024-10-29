@@ -121,7 +121,7 @@
         </div>
     </div>
 </div>
-<div class="card mt-2" style="height: auto; overflow: scroll;">
+<div class="card mt-2" style="height: 200px; overflow: scroll;">
     <div class="card-header">
         <b>Filtrado de Ejecutivos</b>
     </div>
@@ -185,6 +185,7 @@
         await GetEjecutivos();
         await GetDestinoIList();
         await GetDestinosList();
+        await Obtener_Ejecutivos(string.Empty);
     }
 
     private async Task SaveEjecutivo()
@@ -201,6 +202,7 @@
             {
                 await Swal.FireAsync("Éxito", $"Ejecutivo {Ejecutivo.Nombre} ha sido creado con éxito", SweetAlertIcon.Success);
                 await GetEjecutivo();
+                await GetEjecutivos();
             }
         }
         catch (Exception e)
@@ -408,11 +410,26 @@
         }
     }
 
-    private async Task Obtener_Ejecutivos()
+    private async Task Obtener_Ejecutivos(string value)
     {
         try
         {
+            Dictionary<string, string> query = new();
+            query["NomMS"] = value;
 
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+
+            var response = await repositorio.Get<List<Destinos>>($"api/destinos/filtraractivos?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                StateHasChanged();
+                DestinosFiltro = response.Response;
+            }
         }
         catch (Exception e)
         {

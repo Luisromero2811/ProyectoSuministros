@@ -509,6 +509,28 @@ namespace ProyectoSuministros.Server.Controllers
             }
         }
 
+        [HttpGet("filtraractivos")]
+        public ActionResult Obtener_Grupos_Activos([FromQuery] Destinos destinos)
+        {
+            try
+            {
+                var destinosQuery = context.Destinos
+                    .Where(x => x.Activo == true)
+                    .IgnoreAutoIncludes()
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(destinos.NomMS))
+                    destinosQuery = destinosQuery.Where(x => x.NomMS.ToLower().Contains(destinos.NomMS.ToLower())
+                    && x.Activo == true
+                    );
+
+                return Ok(destinosQuery);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
     }
 }
