@@ -95,10 +95,24 @@ namespace ProyectoSuministros.Server.Controllers.Facturas
                                         var numero_remision = ws.Cells[r, 2].Value.ToString();
                                         if (string.IsNullOrEmpty(numero_remision) || string.IsNullOrWhiteSpace(numero_remision)) { return BadRequest($"El número de remisión no puede estar vacio. (fila: {r}, columna: 2)"); }
 
+                                        // Validar duplicado en numero_remision solo
+                                        var remisionDuplicada = facturas.Any(f => f.NRem == numero_remision);
+                                        if (remisionDuplicada)
+                                        {
+                                            return BadRequest($"Error: El Número de Remisión '{numero_remision}' ya existe (fila: {r}).");
+                                        }
+
                                         //Número de factura
                                         if (ws.Cells[r, 3].Value is null) { return BadRequest($"El número de factura no puede estar vacio. (fila: {r}, columna: 3)"); }
                                         var numero_factura = ws.Cells[r, 3].Value.ToString();
                                         if (string.IsNullOrEmpty(numero_factura) || string.IsNullOrWhiteSpace(numero_factura)) { return BadRequest($"El número de factura no puede estar vacio. (fila: {r}, columna: 3)"); }
+
+                                        // Validar duplicado en numero_factura solo
+                                        var facturaDuplicada = facturas.Any(f => f.NFac == numero_factura);
+                                        if (facturaDuplicada)
+                                        {
+                                            return BadRequest($"Error: El Número de Factura '{numero_factura}' ya existe (fila: {r}).");
+                                        }
 
                                         //Producto
                                         if (ws.Cells[r, 4].Value is null) { return BadRequest($"El producto no puede estar vacio. (fila: {r}, columna: 4)"); }

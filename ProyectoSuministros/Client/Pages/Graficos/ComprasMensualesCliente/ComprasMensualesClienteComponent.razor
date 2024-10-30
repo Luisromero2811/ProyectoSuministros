@@ -6,8 +6,9 @@
 
 <h3>Compras mensuales Clientes 2023 - 2024</h3>
 
-<canvas id="myChartComprasMensuales" style="width:100%; height: 600px;"></canvas>
-
+<div class="chart-container">
+    <canvas id="myChartComprasMensuales"></canvas>
+</div>
 @code {
     private DotNetObjectReference<ComprasMensualesClienteComponent> objRef;
     private List<Compras_GraficaClientes> compras_ = new();
