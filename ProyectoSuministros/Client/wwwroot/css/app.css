@@ -100,6 +100,27 @@ a, .btn-link {
         content: var(--blazor-load-percentage-text, "Loading");
     }
 
+.chart-container {
+    max-width: 100%;
+    height: calc(100vh - 150px); /* Ajusta el valor 150px según el espacio que ocupan el NavMenu y el título */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Canvas configurado para adaptarse completamente al contenedor */
+#myChartComportamiento {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Opcional: Redimensiona el título */
+h3 {
+    margin: 0;
+    padding: 10px 0;
+    text-align: center;
+}
+
 /*Colores a utilizar*/
 /* Color Theme Swatches in Hex */
 .gsum-bg-ammxs {

@@ -12,9 +12,7 @@ namespace ProyectoSuministros.Client.Helpers.Validations
 			RuleFor(x => x.NumMGC).NotEmpty().WithName("Número MGC");
 			RuleFor(x => x.Estacion).NotEmpty().WithName("Nombre de la estación");
 			RuleFor(x => x.NomMS).NotEmpty().WithName("Nombre México S");
-			RuleFor(x => x.RFC).NotEmpty().WithName("RFC");
 			RuleFor(x => x.CRE).NotEmpty().WithName("Permiso CRE");
-			RuleFor(x => x.NEstacion).NotEmpty().WithName("Número estación");
 		}
 	}
 }

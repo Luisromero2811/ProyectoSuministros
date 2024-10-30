@@ -6,8 +6,9 @@
 
 <h3>Compras mensuales Clientes y SIMSA 2024</h3>
 
-<canvas id="myChartSIMSACliente" style="width:100%; height: 600px;"></canvas>
-
+<div class="chart-container">
+    <canvas id="myChartSIMSACliente"></canvas>
+</div>
 @code {
     private DotNetObjectReference<GraficoMesesClientesSimsaComponent> objRef;
     private List<ComprasMensuales> compras_ = new();

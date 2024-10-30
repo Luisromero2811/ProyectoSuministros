@@ -5,7 +5,7 @@
 @inject SweetAlertService Swal
 
 <h3>Top 10 Volumen por Destinos (SIMSA) del mes.</h3>
-<div class="col-12 row d-flex">
+<div class="col-12 row d-flex selector-container">
     <div class="col-4">
         <label>Mes:</label>
         <select id="month" @bind="selectedMonth" class="form-control">
@@ -30,22 +30,36 @@
     </div>
 </div>
 
-<div class="chart-container">
+<div class="chartcontainer">
     <canvas id="myChartVolumenMesSIMSA"></canvas>
 </div>
 
 <style>
-    .chart-container {
-        width: 100%;
-        height: 600px; /* Mantén el alto del gráfico consistente */
-        position: relative;
+    /* Estilos para el contenedor de selectores */
+    .selector-container {
+        margin-bottom: 15px; /* Espacio entre los selectores y el gráfico */
     }
 
-    /* Elimina cualquier margin o padding que pueda afectar el canvas */
-    canvas {
-        display: block;
+    /* Ajusta el contenedor principal del gráfico */
+    .chartcontainer {
+        max-width: 100%;
+        height: calc(100vh - 250px); /* Ajusta el espacio disponible para el gráfico */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Canvas configurado para adaptarse completamente al contenedor */
+    #myChartVolumenM3 {
         width: 100% !important;
         height: 100% !important;
+    }
+
+    /* Ajusta el título y el margen */
+    h3 {
+        margin: 0;
+        padding: 10px 0;
+        text-align: center;
     }
 </style>
 

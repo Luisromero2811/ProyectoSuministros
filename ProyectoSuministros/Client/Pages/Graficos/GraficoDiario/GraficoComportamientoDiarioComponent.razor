@@ -10,29 +10,6 @@
     <canvas id="myChartComportamiento"></canvas>
 </div>
 
-<style>
-    .chart-container {
-        max-width: 100%;
-        height: calc(100vh - 150px); /* Ajusta el valor 150px según el espacio que ocupan el NavMenu y el título */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* Canvas configurado para adaptarse completamente al contenedor */
-    #myChartComportamiento {
-        width: 100% !important;
-        height: 100% !important;
-    }
-
-    /* Opcional: Redimensiona el título */
-    h3 {
-        margin: 0;
-        padding: 10px 0;
-        text-align: center;
-    }
-</style>
-
 @code {
     private DotNetObjectReference<GraficoComportamientoDiarioComponent> objRef;
     private List<Comportamiento_Diario> compras_ = new();
