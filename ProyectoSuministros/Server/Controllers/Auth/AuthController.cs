@@ -116,7 +116,6 @@ namespace ProyectoSuministros.Server.Controllers.Auth
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["jwtkey"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            //var expiration = DateTime.Now.AddHours(1);
             var expiration = DateTime.Now.AddMinutes(30);
             var token = new JwtSecurityToken(
                 issuer: null,

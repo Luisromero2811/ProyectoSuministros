@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject IJSRuntime js
 @inject NavigationManager navigationManager
-
+@inject ProyectoSuministros.Client.Auth.RenovadorToken renovadorToken
 
 <div class="page">
     <Menu_Lateral_Emergente />
@@ -9,7 +9,7 @@
     <main>
         <div>
             <!--Haremos un menuNav superior-->
-            <MenuNav/>
+            <MenuNav />
         </div>
 
         <article class="content px-2">
@@ -24,6 +24,11 @@
 
 @code {
     private ErrorBoundary? errorBoundary;
+
+    protected override void OnInitialized()
+    {
+        renovadorToken.Iniciar();
+    }
 
     protected override void OnParametersSet()
     {
