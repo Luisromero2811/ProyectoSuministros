@@ -18,7 +18,6 @@ namespace ProyectoSuministros.Client.Auth
         {
             timer = new Timer
             {
-                //timer.Interval = 1000 * 60 * 50;
                 Interval = 1000 * 60 * 25
             };
             timer.Elapsed += Timer_Elapsed;
