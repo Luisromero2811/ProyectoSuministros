@@ -138,10 +138,10 @@
                 <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDTad" On_Change_Method="@ChangeTAD" @bind-Valor="DestinoFiltro.IDTad"
                                 Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Cluster">
                     <RenderValue>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </RenderValue>
                     <Render>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </Render>
                 </DropDownFilter>
             </div>

@@ -132,10 +132,10 @@
                 <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDEjecutivo" On_Change_Method="@ChangeEjecutive" @bind-Valor="DestinoFiltro.IDEjecutivo"
                                 Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Ejecutivos">
                     <RenderValue>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </RenderValue>
                     <Render>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </Render>
                 </DropDownFilter>
             </div>

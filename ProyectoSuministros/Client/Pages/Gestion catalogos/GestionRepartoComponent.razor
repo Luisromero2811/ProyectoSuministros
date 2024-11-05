@@ -133,10 +133,10 @@
                 <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDReparto" On_Change_Method="@ChangeReparto" @bind-Valor="DestinoFiltro.IDReparto"
                                 Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Reparto">
                     <RenderValue>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </RenderValue>
                     <Render>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </Render>
                 </DropDownFilter>
             </div>
