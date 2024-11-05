@@ -124,20 +124,62 @@
                             icon = "cash-register",
                             Menus = new()
 {
-                                               new()
+                    new()
+                {
+                    name = "Comportamiento diario de compras",
+                    roles = "Admin, Lectura Graficas",
+                    icon = "chart-line",
+                    path = ""
+                },
+                   new()
+                {
+                    name = "Compras mensuales clientes y SIMSA 2024",
+                    icon = "chart-column",
+                    roles = "Admin, Lectura Graficas",
+                    path = "comprasMensuales"
+                },
+                   new()
+                {
+                    name = "Compras mensuales Clientes 2023-2024",
+                    icon = "chart-column",
+                    roles = "Admin, Lectura Graficas",
+                    path = "comprasMensualesClientes"
+                },
+                   new()
+                {
+                    name = "Compras mensuales dividido 2024",
+                    icon = "chart-simple",
+                    roles = "Admin, Lectura Graficas",
+                    path = "comprasMensualesAñoActual"
+                },
+                   new()
+                {
+                    name = "Comportamiento diario por mes seleccionado",
+                    icon = "chart-simple",
+                    roles = "Admin, Lectura Graficas",
+                    path = "comportamientoDiario"
+                },
+                   new()
+                {
+                    name = "Historial de compras mensuales Clientes",
+                    icon = "chart-simple",
+                    roles = "Admin, Lectura Graficas",
+                    path = "historialCompras"
+                },
+                   new()
                 {
                     name = "Volumen por destino CLIENTE en M3 mensual",
                     icon = "chart-simple",
                     roles = "Admin, Lectura Graficas",
                     path = "volumenDestino"
                 },
-                                new()
-                                {
-                                    name = "Volumen por destinos SIMSA en M3 mensual",
-                                    icon = "chart-simple",
-                                    roles = "Admin, Lectura Graficas",
-                                    path = "volumenDestinoSIMSA"
-                                },
+                    new()
+                {
+                     name = "Volumen por destinos SIMSA en M3 mensual",
+                     icon = "chart-simple",
+                     roles = "Admin, Lectura Graficas",
+                     path = "volumenDestinoSIMSA"
+                },
 
                 new()
                 {
@@ -145,49 +187,7 @@
                     icon = "chart-simple",
                     roles = "Admin, Lectura Graficas",
                     path = "volumenGrupo"
-                },
-                                new()
-                {
-                    name = "Comportamiento diario de compras",
-                    roles = "Admin, Lectura Graficas",
-                    icon = "chart-line",
-                    path = ""
-                },
-                new()
-                {
-                    name = "Historial de compras mensuales Clientes",
-                    icon = "chart-simple",
-                    roles = "Admin, Lectura Graficas",
-                    path = "historialCompras"
-                },
-                new()
-                {
-                    name = "Compras mensuales clientes y SIMSA 2024",
-                    icon = "chart-column",
-                    roles = "Admin, Lectura Graficas",
-                    path = "comprasMensuales"
-                },
-                 new()
-                {
-                    name = "Compras mensuales Clientes 2023-2024",
-                    icon = "chart-column",
-                    roles = "Admin, Lectura Graficas",
-                    path = "comprasMensualesClientes"
-                },
-                    new()
-                {
-                    name = "Compras mensuales dividido 2024",
-                    icon = "chart-simple",
-                    roles = "Admin, Lectura Graficas",
-                    path = "comprasMensualesAñoActual"
-                },
-                      new()
-                {
-                    name = "Comportamiento diario por mes seleccionado",
-                    icon = "chart-simple",
-                    roles = "Admin, Lectura Graficas",
-                    path = "comportamientoDiario"
-                },
+                },              
                             }
                         },
 

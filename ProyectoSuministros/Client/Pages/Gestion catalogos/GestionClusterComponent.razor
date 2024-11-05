@@ -131,10 +131,10 @@
                 <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDCluster" On_Change_Method="@ChangeCluster" @bind-Valor="DestinoFiltro.IDCluster"
                                 Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Cluster">
                     <RenderValue>
-                        @context.NomMS
+                        @context.NomMS - @context.IDGob
                     </RenderValue>
                     <Render>
-                        @context.NomMS
+                        @context.NomMS - @context.IDGob
                     </Render>
                 </DropDownFilter>
             </div>

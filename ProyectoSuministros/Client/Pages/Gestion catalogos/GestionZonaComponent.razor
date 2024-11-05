@@ -131,10 +131,10 @@
                 <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDZona" On_Change_Method="@ChangeZona" @bind-Valor="DestinoFiltro.IDZona"
                                 Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Zona">
                     <RenderValue>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </RenderValue>
                     <Render>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </Render>
                 </DropDownFilter>
             </div>

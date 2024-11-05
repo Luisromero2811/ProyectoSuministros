@@ -131,10 +131,10 @@
                 <DropDownFilter Listado="DestinosFiltro" TListado="Destinos" TValue="int?" Propiedad_Valor="IDCluster" On_Change_Method="@ChangeFranquicia" @bind-Valor="DestinoFiltro.IDFranquicia"
                                 Default_Placeholder="Seleccione un Destino" FiltrarValor="Obtener_Franquicia">
                     <RenderValue>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </RenderValue>
                     <Render>
-                        @context.NomMS - @context.Estacion
+                        @context.NomMS - @context.Estacion - @context.IDGob
                     </Render>
                 </DropDownFilter>
             </div>

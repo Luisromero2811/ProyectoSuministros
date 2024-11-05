@@ -77,7 +77,7 @@ namespace ProyectoSuministros.Server.Controllers
             {
 
                 var destinos = await context.Destinos
-                    .Select(x => new CodDenDTO { Cod = x.IDGob, Den = x.NomMS! })
+                    .Select(x => new CodDenDTO { Cod = x.IDGob, Den = x.NomMS! + "-" + x.IDGob })
                     .OrderBy(x => x.Den)
                     .ToListAsync();
                 return Ok(destinos);
